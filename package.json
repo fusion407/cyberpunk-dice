@@ -1,0 +1,11 @@
+{
+  "name": "cyberpunk-dice",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix gig-tracker start",
+    "dev": "npm --prefix gig-tracker run dev",
+    "test": "npm --prefix gig-tracker test",
+    "check": "npm --prefix gig-tracker run check"
+  }
+}

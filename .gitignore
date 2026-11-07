@@ -1,0 +1,11 @@
+node_modules/
+**/node_modules/
+**/.openai/
+**/.sites-runtime/
+**/.vercel/
+.env
+.env.*
+*.log
+*.tar.gz
+**/*-preview.jpg
+**/overtime-proof.jpg

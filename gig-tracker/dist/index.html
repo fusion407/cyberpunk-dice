@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#101312" />
+  <meta name="description" content="Keep your head in the game. A mobile-ready Cyberpunk TCG companion for Gig dice, turns, overtime, and clear victories." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>GIG TRACKER — Cyberpunk TCG Companion</title>
+  <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./table-view.css" />
+</head>
+<body>
+  <div class="ambient" aria-hidden="true"></div>
+  <div class="app-shell">
+    <header class="site-header">
+      <a href="./" class="brand" aria-label="Gig Tracker home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M16 2 29 9.5v13L16 30 3 22.5v-13L16 2Z" stroke="currentColor" stroke-width="2"/><path d="m3 9.5 13 7.4 13-7.4M16 17v13M10 6l13 7.5v8" stroke="currentColor" stroke-width="1.5"/></svg></span><span>GIG<span class="brand-light">TRACKER</span><small>CYBERPUNK TCG COMPANION</small></span></a>
+      <div class="header-right"><span class="system-status"><i></i> SYSTEM ONLINE</span><button class="icon-button" data-action="rules" aria-label="How to play and win"><span class="help-symbol">?</span></button><button class="icon-button" data-action="settings" aria-label="Match settings"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"/></svg></button></div>
+    </header>
+    <main>
+      <section class="intro"><div><div class="eyebrow"><span class="slash">//</span> LESS COUNTING. MORE PLAYING.</div><h1>Every gig <span>counts.</span></h1><p>Your dice. Your turns. One undisputed winner.</p></div><div class="intro-stamp" aria-hidden="true"><span>NIGHT CITY</span><strong>TABLETOP<br>OPERATIONS</strong><span>UTILITY NO. 007 ↗</span></div></section>
+      <div class="match-toolbar"><div class="match-title"><i class="live-dot"></i><span id="match-state">MATCH IN PROGRESS</span><span class="match-tag">LOCAL / 2 PLAYERS</span></div><button class="text-button" data-action="new-game"><svg viewBox="0 0 24 24"><path d="M20 7v5h-5M20 12a8 8 0 1 0-2 5"/></svg>New match</button></div>
+      <div id="match-announcement" class="announcement" aria-live="polite"></div>
+      <section class="scoreboard" aria-label="Player Gig counters" id="scoreboard"></section>
+      <section class="turn-panel" aria-label="Turn tracker"><div class="turn-heading"><div><span class="eyebrow">TURN PROGRESSION</span><h2 id="turn-title">Round 01 <span>/ 07</span></h2></div><span id="phase-badge" class="phase-badge">REGULATION</span></div><div class="timeline" id="timeline"></div><div class="turn-action"><div class="current-turn"><span class="turn-indicator"></span><div><strong id="current-turn-name">Player One’s turn</strong><span id="turn-hint">Check Gigs, then roll in a die from your Fixer.</span></div></div><button class="primary-button" id="end-turn" data-action="end-turn">End turn <svg viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button></div><div class="turn-footnote"><span id="overtime-note">Overtime normally begins after both players finish turn 7.</span><button class="text-button" id="undo" data-action="undo"><svg viewBox="0 0 24 24"><path d="m8 5-5 5 5 5M3 10h10a7 7 0 0 1 7 7"/></svg>Undo</button></div></section>
+      <div class="utility-grid">
+        <section class="utility-panel roller-panel" aria-label="Dice roller"><div class="section-heading"><h2><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 8h.01M16 8h.01M12 12h.01M8 16h.01M16 16h.01" stroke-width="3"/></svg>Quick roll</h2><span class="eyebrow">D6 / FREE ROLL</span></div><p>For the moments chance calls the shots.</p><div class="roller-content"><div id="roll-results" class="roll-results" aria-live="polite"></div><div class="roll-summary" id="roll-summary">READY WHEN YOU ARE</div></div><div class="roller-controls"><div class="dice-select" role="group" aria-label="Number of dice"><button data-action="less-dice" aria-label="Roll fewer dice">−</button><span id="dice-quantity">1 die</span><button data-action="more-dice" aria-label="Roll more dice">+</button></div><button class="outline-button" id="quick-roll" data-action="quick-roll"><svg viewBox="0 0 24 24"><path d="M20 7v5h-5M20 12a8 8 0 1 0-2 5"/></svg>Roll dice</button></div><span class="utility-note">Free rolls don’t change your Gig count.</span></section>
+        <section class="utility-panel log-panel" aria-label="Match history"><div class="section-heading"><h2><svg viewBox="0 0 24 24"><path d="M5 5h14M5 12h14M5 19h9"/></svg>Match log</h2><span class="eyebrow" id="log-count">01 EVENT</span></div><div class="match-log" id="match-log" tabindex="0" aria-label="Scrollable match events"></div><div class="log-footer"><span><i></i> AUTOSAVED ON THIS DEVICE</span><button class="text-button" data-action="export" aria-label="Download match log">Export ↗</button></div></section>
+      </div>
+      <aside class="rule-strip"><span class="rule-icon" aria-hidden="true">i</span><p><strong>Seven Gigs. Right timing.</strong> In regulation, start your turn with 7+ to win. In overtime, reach 7 and it’s game over.</p><button class="text-button" data-action="rules">Know the rules <span>↗</span></button></aside>
+    </main>
+    <footer class="site-footer"><span><span class="slash">//</span> BUILT FOR THE TABLE. READY FOR NIGHT CITY.</span><span>UNOFFICIAL FAN TOOL <b>·</b> V.1.0</span></footer>
+  </div>
+  <dialog id="modal" aria-labelledby="modal-title"></dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

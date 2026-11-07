@@ -1,0 +1,223 @@
+/* Shared badge: decorative on desktop, a touch target on phones. */
+.scoreboard::after { content: none; }
+.table-only, .view-toggle { display: none; }
+.vs-badge {
+  position: absolute;
+  top: 45%;
+  left: calc(50% - 15px);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--faint);
+  font: 600 10px var(--mono);
+  letter-spacing: 1px;
+}
+
+@media (max-width: 600px) {
+  .desktop-vs { display: none; }
+  .view-toggle {
+    position: absolute;
+    top: 43%;
+    left: 50%;
+    z-index: 5;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    transform: translate(-50%, -50%);
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text);
+    font: 500 9px var(--mono);
+    letter-spacing: .5px;
+  }
+  .view-toggle span {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid #647144;
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow: 0 0 0 4px var(--bg);
+  }
+  .view-toggle:hover span, .view-toggle:focus-visible span { border-color: var(--yellow); color: var(--yellow); }
+  .view-toggle:active:not(:disabled) { transform: translate(-50%, -50%); }
+
+  body.table-view { overflow: hidden; }
+  .table-view .app-shell { max-width: none; padding: 0; }
+  .table-view .site-header, .table-view .site-footer,
+  .table-view main > :not(.scoreboard) { display: none; }
+  .table-view .scoreboard {
+    position: fixed;
+    inset: 0;
+    isolation: isolate;
+    height: 100vh;
+    height: 100dvh;
+    padding: max(10px, env(safe-area-inset-top)) 12px max(10px, env(safe-area-inset-bottom));
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 48px;
+    background: var(--bg);
+  }
+  .table-view .scoreboard::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 24px;
+    right: 24px;
+    height: 1px;
+    background: var(--border);
+  }
+  .table-view .view-toggle { top: 50%; width: 48px; height: 48px; }
+  .table-view .view-toggle span {
+    width: 38px;
+    height: 38px;
+    color: var(--yellow);
+    border-color: var(--yellow);
+    background: #242c17;
+    box-shadow: 0 0 0 6px var(--bg);
+  }
+  .table-view .player-card {
+    grid-column: 1;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-height: 0;
+    padding: 12px 14px;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    border-radius: 7px;
+  }
+  .table-view .player-two { grid-row: 1; transform: rotate(180deg); }
+  .table-view .table-only { display: flex; }
+  .table-view .table-turn-track {
+    order: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-shrink: 0;
+    min-height: 24px;
+    color: var(--muted);
+    font: 8px var(--mono);
+  }
+  .table-turn-track > span { display: flex; gap: 4px; align-items: baseline; white-space: nowrap; }
+  .table-turn-track b { color: var(--accent); font-size: 12px; font-weight: 500; }
+  .table-turn-track small { font-size: 7px; }
+  .table-turn-markers { display: flex; gap: 5px; }
+  .table-turn-marker {
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    color: var(--muted);
+    font: 8px var(--mono);
+  }
+  .table-turn-marker.done { background: color-mix(in srgb, var(--accent) 12%, transparent); border-color: color-mix(in srgb, var(--accent) 40%, transparent); color: var(--accent); }
+  .table-turn-marker.current { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .table-view .gig-rack { order: 1; flex-shrink: 0; min-height: 22px; gap: 8px; margin: 0; padding: 3px 0 7px; border-bottom: 1px solid var(--border); }
+  .table-view .gig-rack .die { width: 21px; height: 21px; padding: 3px; gap: 1px; border-radius: 3px; }
+  .table-view .player-heading { order: 2; flex-direction: row; align-items: center; gap: 9px; flex-shrink: 0; }
+  .table-view .player-identity { width: auto; min-width: 0; }
+  .table-view .player-identity > div { min-width: 0; }
+  .table-view .player-identity h2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 22px; }
+  .table-view .player-identity small { display: none; }
+  .table-view .player-number { width: 25px; height: 27px; }
+  .table-view .player-status { margin-left: auto; font-size: 7px; padding: 5px 6px; }
+  .table-view .player-main { order: 3; display: flex; justify-content: space-around; align-items: center; flex: 1 0 78px; min-height: 78px; gap: 14px; }
+  .table-view .gig-count { min-height: 0; margin: 0; gap: 13px; }
+  .table-view .count-number { font-size: clamp(70px, 11dvh, 104px); }
+  .table-view .count-details strong { font-size: 17px; }
+  .table-view .count-details span { font-size: 8px; letter-spacing: 1px; }
+  .table-view .table-quick-roll { flex-direction: column; align-items: center; gap: 5px; }
+  .table-roll-button {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    width: 72px;
+    height: 72px;
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+    border-radius: 50%;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 5%, var(--bg));
+    font: 8px var(--mono);
+    letter-spacing: .5px;
+  }
+  .table-roll-button:hover { background: color-mix(in srgb, var(--accent) 12%, var(--bg)); border-color: var(--accent); }
+  .table-roll-output { display: grid; place-items: center; height: 32px; min-width: 30px; font: 600 33px/1 var(--display); }
+  .table-roll-output svg { height: 26px; width: 26px; }
+  .table-quick-roll small { color: var(--muted); font: 6px var(--mono); letter-spacing: .2px; }
+  .table-view .counter-controls { order: 4; grid-template-columns: 1fr 1.5fr 1fr; flex-shrink: 0; padding: 0; gap: 7px; }
+  .table-view .counter-controls button { height: 40px; }
+  .table-view .counter-controls .steal-button { font-size: 10px; }
+  .table-view .counter-controls svg { width: 13px; height: 13px; }
+  .table-view .pending-win { display: none; }
+  .table-view .reserve { order: 5; flex-shrink: 0; flex-wrap: nowrap; padding: 6px 0 0; min-height: 35px; gap: 7px; }
+  .table-view .reserve > span { font-size: 7px; }
+  .table-view .reserve-amount { margin-left: 0; margin-right: auto; }
+  .table-view .reserve-amount i { display: none; }
+  .table-view .reserve-amount b { font-size: 11px; }
+  .table-view .reserve-roll { flex-basis: auto; font-size: 8px; height: 30px; min-height: 30px; padding: 5px 8px; }
+  .table-view .reserve-wait { flex-basis: auto; min-height: 0; height: auto; padding: 0; font-size: 7px; }
+  .table-view .table-footer { order: 6; flex-direction: column; flex-shrink: 0; gap: 6px; }
+  .table-result { display: none; text-align: center; }
+  .table-result.has-result { display: block; color: var(--accent); font: 7px var(--mono); line-height: 1.4; }
+  .table-result strong { font-weight: 500; letter-spacing: .5px; }
+  .table-result span { display: block; color: var(--muted); margin-top: 3px; }
+  .table-view .winner .table-result strong { font: 600 20px/1 var(--display); }
+  .table-actions { display: flex; align-items: center; gap: 8px; }
+  .table-actions .icon-button { width: 36px; height: 36px; flex-shrink: 0; }
+  .table-undo { min-width: 53px; height: 36px; padding: 0; background: transparent; border: 0; color: var(--muted); font-size: 10px; }
+  .table-view .table-end-turn { min-width: 0; min-height: 38px; flex: 1; width: auto; justify-content: center; padding: 8px 10px; font-size: 11px; }
+  .table-view .player-two .table-end-turn { background: var(--yellow); border-color: var(--yellow); }
+  .table-view .player-card:not(.player-two) .table-end-turn { background: var(--cyan); border-color: var(--cyan); }
+  .table-view .table-end-turn:disabled { background: #232a23 !important; border-color: var(--border) !important; color: var(--muted); opacity: .65; }
+  .table-view dialog.table-top-dialog { transform: rotate(180deg); }
+  .table-view .toast { bottom: calc(50% + 30px); font-size: 10px; padding: 8px 12px; }
+}
+
+@media (max-width: 600px) and (max-height: 740px) {
+  .table-view .scoreboard { gap: 44px; padding: 6px 8px; }
+  .table-view .player-card { gap: 4px; padding: 8px 10px; }
+  .table-view .table-turn-track { min-height: 20px; }
+  .table-turn-marker { width: 19px; height: 19px; font-size: 7px; }
+  .table-turn-markers { gap: 4px; }
+  .table-view .gig-rack { min-height: 20px; padding-bottom: 4px; gap: 6px; }
+  .table-view .gig-rack .die { width: 17px; height: 17px; padding: 2px; }
+  .table-view .player-identity h2 { font-size: 19px; }
+  .table-view .player-number { height: 23px; width: 23px; }
+  .table-view .player-status { font-size: 6px; padding: 4px; }
+  .table-view .player-main { flex-basis: 64px; min-height: 64px; }
+  .table-view .count-number { font-size: 64px; }
+  .table-view .table-roll-button { width: 54px; height: 54px; font-size: 7px; gap: 1px; }
+  .table-view .table-roll-output { height: 23px; font-size: 26px; }
+  .table-view .table-roll-output svg { width: 21px; height: 21px; }
+  .table-view .table-quick-roll small { font-size: 5px; }
+  .table-view .counter-controls button { height: 34px; }
+  .table-view .reserve { min-height: 30px; padding-top: 3px; }
+  .table-view .reserve-roll { height: 27px; min-height: 27px; font-size: 7px; }
+  .table-view .table-actions .icon-button, .table-view .table-undo { height: 32px; }
+  .table-view .table-end-turn { min-height: 34px; }
+}
+
+@media (max-width: 600px) and (max-height: 620px) {
+  .table-view .player-card { gap: 3px; padding-top: 7px; padding-bottom: 7px; }
+  .table-view .player-main { flex-basis: 54px; min-height: 54px; }
+  .table-view .count-number { font-size: 56px; }
+  .table-view .table-quick-roll { gap: 0; }
+  .table-view .table-roll-button { width: 44px; height: 44px; }
+  .table-view .table-quick-roll small { display: none; }
+}
