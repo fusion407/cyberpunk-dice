@@ -41,6 +41,8 @@
 .dice-review { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 12px; margin-top: 12px; border: 1px solid #68762f; border-radius: 4px; background: #272e16; font-size: 11px; line-height: 1.5; }
 .dice-review[hidden] { display: none; }
 .dice-review .outline-button { flex-shrink: 0; }
+.dice-review > span { flex: 1; min-width: 0; }
+.dice-review-close { flex-shrink: 0; align-self: flex-start; width: 36px; height: 36px; color: var(--text); border-color: #68762f; font-size: 24px; }
 .dice-review.table-review { position: fixed; top: calc(50% + 34px); left: 8px; right: 8px; margin: 0; z-index: 6; }
 .roller-type { background: #131712; border: 1px solid var(--border); border-radius: 3px; color: var(--yellow); min-height: 38px; padding: 5px; font: 10px var(--mono); }
 .roll-results .poly-die { width: 34px; height: 40px; }

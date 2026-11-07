@@ -1,4 +1,4 @@
-const CACHE = 'gig-tracker-v3';
+const CACHE = 'gig-tracker-v4';
 const ASSETS = ['./', './index.html', './styles.css', './table-view.css', './dice.css', './app.js', './game.js', './icon.svg', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './manifest.webmanifest'];
 self.addEventListener('install', (event) => { event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS))); self.skipWaiting(); });
 self.addEventListener('activate', (event) => { event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key.startsWith('gig-tracker-') && key !== CACHE).map((key) => caches.delete(key)))).then(() => self.clients.claim())); });

@@ -175,6 +175,13 @@ function addGig(player) {
 document.addEventListener('click',event=>{
   const button=event.target.closest('button[data-action]');if(!button||button.disabled)return;
   const action=button.dataset.action,viewer=Number(button.closest('.player-card')?.dataset.player??game.active);
+  if(action==='dismiss-saved-dice'){
+    if(!game.needsDiceReview)return;
+    const next=createGame(game.players.map(p=>p.name),game.first);
+    quickResults=[];tableRolls.fill(null);$('modal').close();commit(next);
+    notify('Started fresh. Undo restores your saved match.');
+    document.querySelector('.reserve-roll:not(:disabled)')?.focus({preventScroll:true});return;
+  }
   if(action==='toggle-table'){if(!mobileViewport.matches)return;preferTableView=!tableView;try{localStorage.setItem(VIEW_STORAGE,String(preferTableView));}catch{}applyView();renderReview();return;}
   if(['rules','settings','new-game'].includes(action)){showModal(action,viewer);return;}
   if(action==='close-modal'){$('modal').close();return;}

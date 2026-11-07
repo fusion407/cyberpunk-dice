@@ -31,6 +31,8 @@ npm run check
 
 Older saves and undo history retain their counts, faces and turns. A fresh match upgrades automatically. An in-progress D6-only save requires a one-time physical dice setup because its types and original owners were never recorded; the app does not guess them. Match controls resume after all 12 dice are identified.
 
+Use the saved-dice banner’s **×** to discard the old match and start fresh with the same player names and first player. The banner stays dismissed after reload. **Undo** restores the old match and its setup prompt if dismissed accidentally.
+
 ## Victory rules
 
 Checked against the [official comprehensive rules](https://cyberpunktcg.com/comprehensive-rules), §§1.10–1.14, on November 7, 2026:
