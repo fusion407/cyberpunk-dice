@@ -2,6 +2,10 @@
 
 A mobile-ready Cyberpunk TCG companion with Gig counters, a D6 roller, a turn tracker, overtime detection, and explained match results.
 
+**Live app:** [cyberpunk-dice.vercel.app](https://cyberpunk-dice.vercel.app/)
+
+**Live app:** [cyberpunk-dice.vercel.app](https://cyberpunk-dice.vercel.app/)
+
 Run `npm start` from this directory, then open <http://localhost:4173>. No dependency installation is required.
 
 Run `npm test` for the rule and offline checks, or `npm run check` for JavaScript syntax checks.

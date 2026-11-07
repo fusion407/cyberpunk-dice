@@ -45,6 +45,6 @@ This is a companion, not a full card simulator. Players must report physical tab
 - `dist/game.js`: pure, independently tested match engine.
 - `dist/app.js`: interface, secure dice randomness, local saves, undo, export, and dialogs.
 - `server.mjs`: local static preview server. Production hosting serves `dist/` directly.
-- `.openai/hosting.json`: private Sites project identity and static output declaration.
+- Root `vercel.json`: production static hosting configuration. Optional local `.openai/hosting.json` metadata is excluded from GitHub.
 
 Fonts use Google Fonts when online and fall back to system fonts. The application itself uses no remote scripts or services. Unofficial fan tool; not affiliated with Cyberpunk TCG or its publisher.
