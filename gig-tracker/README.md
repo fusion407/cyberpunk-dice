@@ -19,18 +19,23 @@ npm run check
 
 ## Playing
 
-- Each player starts with six Fixer dice and zero Gigs. Use **New match** to choose names and first player.
-- **Roll in a Gig** rolls one D6, moves it from Fixer into the active player’s Gig area, and records the face. It is available once per turn.
-- If you rolled physically, **End turn** lets you record the physical die before passing. A separate skip option handles exceptional table states.
-- **Steal 1** transfers one die from the rival without changing the total in play. **+ / −** manually adjust Gigs; they do not consume Fixer dice.
-- **Quick roll** rolls one to six D6 without affecting the match.
+- Each player starts with exactly one D4, D6, D8, D10, D12 and D20 in Fixer. Use **New match** to choose names and first player.
+- **Choose Gig** lets the active player select any remaining Fixer die once per turn. D20 stays locked until it is the only die left. Roll the selected die digitally or record its physical face; it moves from Fixer into the Gig area.
+- **End turn** offers the same choice if a physical Gig has not yet been recorded. A separate skip option handles exceptional table states.
+- **Steal** lets you select the exact opposing Gigs. All selected Gigs transfer together, preserving their IDs, original owners, types and rolled values. Duplicate die types from different owners remain distinct.
+- Tap a Gig to change or reroll its face, or return it to Fixer for a card effect. **−** removes a selected Gig; **+** restores a removed die or opens Fixer selection on the active player’s turn. These controls cannot create extra physical dice.
+- **Quick roll** supports D4, D6, D8, D10, D12 and D20, with one to six dice per roll. It never changes the match. D20-last applies to rolling Gigs from Fixer; free D20 rolls remain available for setup and other purposes.
 - On mobile (up to 600px wide), tap the central **VS** button to switch to **face-to-face table view**. Player Two faces the opposite end of the phone. Each half has its own turn progress, Gig controls, free D6 roller, and end-turn button. Tap **VS** again to restore the standard layout. This preference is saved separately from the match; switching views does not affect Gigs, turns, or undo. Desktop keeps the standard layout.
 - **Undo** reverses match actions, including a victory or new match. Match state and undo history are saved on the device; two tabs synchronize through browser storage events.
-- **Match settings** can correct Fixer reserves for card effects or record a concession/deck-out. **Export** downloads the last 100 match events.
+- **Match settings** can assign the 12 physical dice to either player’s Fixer/Gig area or out of play, correct faces for card effects, or record a concession/deck-out. **Export** downloads typed dice, values, owners, and the last 100 match events.
+
+Older saves and undo history retain their counts, faces and turns. A fresh match upgrades automatically. An in-progress D6-only save requires a one-time physical dice setup because its types and original owners were never recorded; the app does not guess them. Match controls resume after all 12 dice are identified.
 
 ## Victory rules
 
 Checked against the [official comprehensive rules](https://cyberpunktcg.com/comprehensive-rules), §§1.10–1.14, on November 7, 2026:
+
+Physical dice behavior was also checked against the supplied official PDF: §§6.1 and 7.2 (six die types), §8.6.5.1.1 (D20 last), and §11.5.1 (selected Gigs move together without changing values).
 
 1. During regulation, holding seven or more Gig dice wins at the **beginning of that player’s turn**, before the Start Phase and its new Gig.
 2. Overtime begins **after two consecutive turns whose players each began their turn with an empty Fixer**. With six starting Fixer dice rolled in normally, this is after the second player completes their seventh turn. The engine tracks empty starts instead of assuming a fixed turn cutoff, so card effects on Fixer can be represented.

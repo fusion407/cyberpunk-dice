@@ -1,6 +1,6 @@
 # Cyberpunk Dice / Gig Tracker
 
-A mobile-ready Cyberpunk TCG companion with Gig counters, a D6 roller, a turn tracker, overtime detection, and explained match results.
+A mobile-ready Cyberpunk TCG companion with individual D4–D20 Gigs, selected-die stealing, a polyhedral roller, turn tracking, overtime detection, and explained match results.
 
 **Live app:** [cyberpunk-dice.vercel.app](https://cyberpunk-dice.vercel.app/)
 

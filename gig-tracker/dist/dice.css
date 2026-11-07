@@ -1,0 +1,75 @@
+.street-cred { color: var(--accent) !important; letter-spacing: .5px !important; }
+.gig-rack { justify-content: flex-start; overflow-x: auto; gap: 5px; min-height: 44px; padding: 3px 2px; scrollbar-width: thin; scrollbar-color: #4f5b40 transparent; }
+.gig-token, .poly-die { position: relative; flex-shrink: 0; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; width: 34px; height: 40px; gap: 2px; border: 1px solid #58624e; border-radius: 5px; color: var(--accent, var(--text)); background: #222a20; }
+.gig-token { cursor: pointer; padding: 3px; }
+.gig-token:hover:not(:disabled) { border-color: var(--accent); background: #34402a; }
+.gig-token small, .poly-die small { font: 7px var(--mono); color: var(--muted); }
+.gig-token strong, .poly-die strong { font: 600 18px/1 var(--display); }
+.gig-token i { position: absolute; right: 2px; bottom: 1px; font: 5px var(--mono); color: var(--cyan); }
+.gig-token.owner-1 i { color: var(--yellow); }
+.gig-token:disabled { opacity: .85; }
+.empty-gigs { width: 100%; text-align: center; color: var(--faint); font: 7px var(--mono); letter-spacing: 1px; }
+.reserve-amount { gap: 3px; }
+.reserve-die { font: 7px var(--mono); color: var(--muted); }
+.reserve-die.locked { color: var(--faint); text-decoration: underline dotted; }
+.die-choice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 16px 0 20px; }
+.die-choice { min-height: 72px; padding: 12px 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 1px solid #46523b; border-radius: 5px; background: #151b12; color: var(--text); }
+.die-choice.selected { color: var(--yellow); border-color: var(--yellow); background: #e5f34b0c; }
+.die-choice:hover:not(:disabled) { border-color: var(--yellow); }
+.die-choice strong { font: 600 24px var(--display); }
+.die-choice small { font: 7px var(--mono); color: var(--muted); }
+.die-choice:disabled { opacity: .4; }
+.full-button { width: 100%; justify-content: center; }
+#physical-form { margin-top: 20px; padding-top: 17px; border-top: 1px solid var(--border); }
+#physical-form .form-field { margin-bottom: 10px; }
+.steal-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+.steal-option { position: relative; padding: 10px 5px; border: 1px solid var(--border); border-radius: 5px; cursor: pointer; min-width: 0; }
+.steal-option:has(input:checked) { border-color: var(--yellow); background: #e5f34b0b; }
+.steal-option input { position: absolute; top: 5px; right: 5px; width: 17px; height: 17px; accent-color: var(--yellow); }
+.steal-option > span { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 12px; }
+.steal-option > span > small { text-align: center; font: 7px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.steal-option .poly-die { width: 44px; height: 50px; }
+.steal-option .poly-die strong { font-size: 24px; }
+.dice-setup { border-top: 1px solid var(--border); padding-top: 15px; }
+.dice-setup summary { font-size: 12px; cursor: pointer; }
+.dice-setup .form-note { margin: 12px 0; }
+.inventory-row, .inventory-head { display: grid; grid-template-columns: 1fr 1.45fr 52px; align-items: center; gap: 8px; margin: 8px 0; }
+.inventory-head { font: 7px var(--mono); color: var(--faint); }
+.inventory-row label { font: 10px var(--mono); color: var(--muted); }
+.inventory-row input, .inventory-row select { min-width: 0; width: 100%; height: 34px; background: #11170f; color: var(--text); border: 1px solid #414c35; border-radius: 3px; padding: 5px; font-size: 10px; }
+.migration-explanation { font-size: 11px; color: var(--yellow); line-height: 1.6; }
+.dice-review { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 12px; margin-top: 12px; border: 1px solid #68762f; border-radius: 4px; background: #272e16; font-size: 11px; line-height: 1.5; }
+.dice-review[hidden] { display: none; }
+.dice-review .outline-button { flex-shrink: 0; }
+.dice-review.table-review { position: fixed; top: calc(50% + 34px); left: 8px; right: 8px; margin: 0; z-index: 6; }
+.roller-type { background: #131712; border: 1px solid var(--border); border-radius: 3px; color: var(--yellow); min-height: 38px; padding: 5px; font: 10px var(--mono); }
+.roll-results .poly-die { width: 34px; height: 40px; }
+.sr-only { position: absolute; height: 1px; width: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 600px) {
+  .gig-rack { min-height: 38px; margin-bottom: 12px; gap: 4px; }
+  .gig-token { min-width: 29px; width: 29px; height: 32px; }
+  .gig-token strong { font-size: 15px; }
+  .gig-token small { font-size: 6px; }
+  .reserve-die { font-size: 6px; }
+  .reserve-amount { gap: 2px; }
+  .roller-controls { gap: 7px; }
+  .roller-controls .outline-button { padding: 8px 10px; }
+  .dice-select button { width: 27px; }
+  .dice-select span { min-width: 43px; }
+  .table-view .gig-rack { min-height: 36px; padding: 0 0 3px; gap: 5px; }
+  .table-view .gig-token { width: 32px; min-width: 32px; height: 32px; }
+  .table-view .reserve-amount { margin-right: auto; gap: 3px; }
+  .table-view .reserve-die { font-size: 7px; }
+  .table-view .reserve > span { font-size: 7px; }
+  .table-view .count-details .street-cred { font-size: 7px; }
+  .table-view .reserve-roll { padding: 4px 6px; }
+  .dice-review { font-size: 9px; gap: 7px; }
+  .dice-review .outline-button { font-size: 9px; padding: 7px; }
+}
+@media (max-width: 600px) and (max-height: 620px) {
+  .table-view .player-card { gap: 2px; padding-top: 5px; padding-bottom: 5px; }
+  .table-view .gig-rack { min-height: 30px; padding-bottom: 1px; }
+  .table-view .gig-token { min-width: 27px; width: 27px; height: 28px; }
+  .table-view .gig-token strong { font-size: 13px; }
+  .table-view .reserve-die { font-size: 6px; }
+}

@@ -9,3 +9,5 @@ node_modules/
 *.tar.gz
 **/*-preview.jpg
 **/overtime-proof.jpg
+.codex-attachments/
+.codex-attachments/
