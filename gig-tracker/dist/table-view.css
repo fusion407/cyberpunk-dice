@@ -1,6 +1,6 @@
 /* Match app.js: tablets and touch screens can use the table-view switch. */
 .scoreboard::after { content: none; }
-.table-only, .view-toggle { display: none; }
+.table-only, .view-toggle, .battle-mode-hint { display: none; }
 .vs-badge {
   position: absolute;
   top: 45%;
@@ -19,6 +19,14 @@
 }
 
 @media (max-width: 1200px), (any-pointer: coarse) {
+  .battle-mode-hint {
+    display: block;
+    margin: 0 0 10px;
+    color: var(--muted);
+    text-align: center;
+    font: 10px/1.5 var(--mono);
+  }
+  .battle-mode-hint strong { color: var(--yellow); font-weight: 500; }
   .desktop-vs { display: none; }
   .view-toggle {
     position: absolute;
