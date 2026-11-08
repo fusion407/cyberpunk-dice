@@ -37,13 +37,11 @@ function notify(text) { $('toast').textContent = text; $('toast').classList.add(
 function commit(next) {
   if (next === game) return;
   const hadWinner = !!game.result;
-  const turnStarted = next.turn > game.turn;
   history.push(structuredClone(game)); history = history.slice(-100); game = next; save(); render();
   if (game.result && !hadWinner) {
     const target = tableView ? document.querySelector(`.player-card[data-player="${game.result.winners[0]}"] .table-result`) : $('match-announcement');
     target.setAttribute('tabindex','-1'); target.focus({preventScroll:tableView}); navigator.vibrate?.([60,50,100]);
   }
-  if(turnStarted && needsTurnGig(game))showModal('roll-in',game.active);
 }
 function dispatch(action) { commit(transition(game, action)); }
 const diceIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 9 6v8l-9 6-9-6V8l9-6Z M3 8l9 5 9-5M12 13v9"/></svg>';
@@ -59,10 +57,12 @@ function playerCard(p, index) {
   const playerTurn = p.turns + (current ? 1 : 0);
   const resultText = game.result ? game.result.winners.length===2 ? 'MATCH DRAWN' : won ? 'YOU WIN' : 'RIVAL WINS' : count>=7 ? 'HOLD UNTIL YOUR NEXT TURN TO WIN' : '';
   const free = tableRolls[index];
+  const cred = streetCred(p);
+  const credDescription = cred === null ? 'No Gigs yet' : String(cred);
   return `<article class="player-card ${index===1?'player-two':''} ${current?'active':''} ${won?'winner':''}" data-player="${index}" aria-label="${esc(p.name)}${current?', active player':''}">
     <div class="table-only table-turn-track" aria-label="${esc(p.name)} turn progress"><span>TURN <b>${String(Math.max(1,playerTurn)).padStart(2,'0')}</b><small>${game.overtime?'OVERTIME':'/ 07'}</small></span><div class="table-turn-markers">${Array.from({length:7},(_,i)=>`<span class="table-turn-marker ${p.turns>i?'done':current&&p.turns===i?'current':''}">${i+1}</span>`).join('')}</div></div>
     <div class="player-heading"><div class="player-identity"><span class="player-number">0${index+1}</span><div><h2>${esc(p.name)}</h2><small>${index===game.first?'FIRST TO PLAY':'SECOND TO PLAY'}</small></div></div><span class="player-status">${status}</span></div>
-    <div class="player-main"><div class="gig-count"><span class="count-number" aria-live="polite" aria-label="${count} Gig dice">${count}</span><div class="count-details"><strong>/ 7</strong><span>GIG DICE</span><span class="street-cred" aria-label="${esc(p.name)} Street Cred: ${streetCred(p)??'Null'}"><span class="cred-label">STREET CRED</span><strong class="cred-value">${streetCred(p)??'NULL'}</strong></span></div></div><div class="table-only table-quick-roll"><button class="table-roll-button" data-action="table-roll" data-player="${index}" aria-label="Choose a free die to roll for ${esc(p.name)}"><span class="table-roll-output" aria-live="polite">${free?.value ?? diceIcon}</span><span>${free?'D'+free.sides+' · ROLL':'ROLL DIE'}</span></button><small>FREE ROLL · NO GIG CHANGE</small></div></div>
+    <div class="player-main"><div class="gig-count"><span class="count-number" aria-live="polite" aria-label="${count} Gig dice">${count}</span><div class="count-details"><strong>/ 7</strong><span>GIG DICE</span><span class="street-cred" title="${credDescription}" aria-label="${esc(p.name)} Street Cred: ${credDescription}" aria-live="polite"><span class="cred-label">STREET CRED</span><strong class="cred-value ${cred === null ? 'cred-empty' : ''}">${cred ?? 'No Gigs yet'}</strong></span></div></div><div class="table-only table-quick-roll"><button class="table-roll-button" data-action="table-roll" data-player="${index}" aria-label="Choose a free die to roll for ${esc(p.name)}"><span class="table-roll-output" aria-live="polite">${free?.value ?? diceIcon}</span><span>${free?'D'+free.sides+' · ROLL':'ROLL DIE'}</span></button><small>FREE ROLL · NO GIG CHANGE</small></div></div>
     <div class="gig-rack" aria-label="${esc(p.name)} Gig dice">${rack}</div>
     <div class="counter-controls"><button data-action="remove" data-player="${index}" aria-label="Choose a Gig to remove from ${esc(p.name)}" ${!count||blocked?'disabled':''}>−</button><button class="steal-button" data-action="steal" data-player="${index}" aria-label="Choose Gigs for ${esc(p.name)} to steal" title="${needsTurnGig(game)?'The active player must roll their turn Gig before stealing.':'Choose the exact rival Gigs to steal.'}" ${!game.players[1-index].gigs.length||!canSteal(game)?'disabled':''}>⇄ Steal</button><button data-action="add" data-player="${index}" aria-label="Add or restore a Gig for ${esc(p.name)}" ${blocked?'disabled':''}>+</button></div>
     <div class="pending-win">${count>=7&&!game.overtime&&!game.result?'HOLD UNTIL YOUR NEXT TURN TO WIN':won?'NIGHT CITY IS YOURS.':'&nbsp;'}</div>
@@ -196,8 +196,7 @@ document.addEventListener('click',event=>{
     const next=createGame(game.players.map(p=>p.name),game.first);
     quickResults=[];tableRolls.fill(null);$('modal').close();commit(next);
     notify('Started fresh. Undo restores your saved match.');
-    if(needsTurnGig(game))showModal('roll-in',game.active);
-    else document.querySelector('.reserve-roll:not(:disabled)')?.focus({preventScroll:true});return;
+    document.querySelector('.reserve-roll:not(:disabled)')?.focus({preventScroll:true});return;
   }
   if(action==='toggle-table'){if(!tableViewport.matches)return;preferTableView=!tableView;try{localStorage.setItem(VIEW_STORAGE,String(preferTableView));}catch{}applyView();renderReview();return;}
   if(['rules','settings','new-game'].includes(action)){showModal(action,viewer);return;}
@@ -246,7 +245,10 @@ document.addEventListener('submit',event=>{
   if(form.id==='steal-form'){applyAndClose({type:'steal',player:dialogViewer,dieIds:new FormData(form).getAll('gig')});return;}
   if(form.id==='match-form'){
     const data=new FormData(form),names=[data.get('name-0'),data.get('name-1')];
-    if(modalKind==='new-game'){$('modal').close();commit(createGame(names,Number(data.get('first'))));if(needsTurnGig(game))showModal('roll-in',game.active);return;}
+    if(modalKind==='new-game'){
+      $('modal').close();quickResults=[];tableRolls.fill(null);
+      commit(createGame(names,Number(data.get('first'))));return;
+    }
     const inventory=allDice().map(d=>({id:d.id,zone:data.get('zone-'+d.id),value:Number(data.get('face-'+d.id))}));
     applyAndClose({type:'settings',names,inventory});
   }
@@ -256,5 +258,7 @@ window.addEventListener('storage',event=>{
   if(event.key!==STORAGE||!event.newValue)return;
   try{const saved=JSON.parse(event.newValue),next=migrateGame(saved.game);if(next){game=next;history=Array.isArray(saved.history)?saved.history.map(migrateGame).filter(Boolean).slice(-100):[];$('modal').close();render();notify('Match updated from another tab.');}}catch{}
 });
-save();render();if(needsTurnGig(game))showModal('roll-in',game.active);
+// Opening or resuming a match never opens a dialog. The active card prompts
+// for its setup roll; the picker opens only in response to a player action.
+save();render();
 if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});

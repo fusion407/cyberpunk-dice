@@ -154,6 +154,38 @@ test('an older empty match after turn one still requires explicit dice review',(
 test('no Gigs means Null Street Cred, rather than zero',()=>{
   assert.equal(streetCred(createGame().players[0]),null);
 });
+test('starting, rolling and resuming keep the other player empty without corrupting totals',()=>{
+  for(const first of [0,1]){
+    const original=createGame(['Player One','Player Two'],first);
+    const rolled=roll(original,12,12);
+    const resumed=migrateGame(JSON.parse(JSON.stringify(rolled)));
+    assert.ok(isValidGame(resumed));
+    assert.equal(resumed.players[first].gigs.length,1);
+    assert.equal(streetCred(resumed.players[first]),12);
+    assert.equal(resumed.players[1-first].gigs.length,0);
+    assert.equal(streetCred(resumed.players[1-first]),null);
+    assert.equal(canSteal(resumed),true);
+    const next=step(resumed,{type:'end-turn'});
+    assert.equal(next.active,1-first);
+    assert.equal(needsTurnGig(migrateGame(JSON.parse(JSON.stringify(next)))),true);
+    assert.equal(canSteal(next),false);
+    assert.equal(original.players[first].gigs.length,0);
+  }
+});
+test('taking the last opposing Gig clears only that player’s Street Cred and can be restored from a snapshot',()=>{
+  let g=roll(createGame(),12,12);g=step(g,{type:'end-turn'});g=roll(g,6,3);
+  const before=JSON.parse(JSON.stringify(g));
+  g=step(g,{type:'steal',player:1,dieId:'0-12'});
+  assert.equal(g.players[0].gigs.length,0);assert.equal(streetCred(g.players[0]),null);
+  assert.equal(g.players[1].gigs.length,2);assert.equal(streetCred(g.players[1]),15);
+  const restored=migrateGame(before);
+  assert.equal(streetCred(restored.players[0]),12);assert.equal(streetCred(restored.players[1]),3);
+  g=step(g,{type:'remove',player:1,dieId:'1-6'});
+  g=step(g,{type:'return-fixer',player:1,dieId:'0-12'});
+  assert.equal(g.players[1].gigs.length,0);assert.equal(streetCred(g.players[1]),null);
+  g=step(g,{type:'restore',player:0,dieId:'1-6'});
+  assert.equal(g.players[0].gigs.length,1);assert.equal(streetCred(g.players[0]),3);
+});
 test('old in-progress saves preserve counts, turns and faces without guessing types or owners',()=>{
   const old=asLegacy(roll(createGame(),8,3));old.turn=5;old.players[0].turns=2;const g=migrateGame(old);
   assert.ok(isValidGame(g));assert.equal(g.needsDiceReview,true);assert.equal(g.turn,5);assert.equal(g.players[0].gigs[0].value,3);assert.equal(g.players[0].gigs[0].sides,null);assert.equal(g.players[0].gigs[0].owner,null);assert.equal(g.players[0].fixer.length,5);
