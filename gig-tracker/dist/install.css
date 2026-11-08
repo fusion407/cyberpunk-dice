@@ -1,0 +1,23 @@
+.install-promotion { display: none; }
+.install-promotion[hidden] { display: none; }
+.install-copy { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.install-copy > svg { width: 22px; height: 22px; color: var(--cyan); }
+.install-copy strong { display: block; color: var(--text); font-size: 12px; font-weight: 500; }
+.install-copy small { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.install-promotion .outline-button { flex-shrink: 0; min-height: 42px; gap: 7px; padding: 8px 12px; }
+.install-promotion .outline-button svg { width: 15px; height: 15px; }
+.install-platform { font: 600 21px var(--display); margin: 20px 0 12px; }
+.install-steps { padding-left: 24px; color: var(--muted); font-size: 13px; line-height: 1.8; }
+.install-steps li { margin: 10px 0; padding-left: 5px; }
+.install-steps li::marker { color: var(--cyan); font-family: var(--mono); }
+@media (max-width: 1200px), (any-pointer: coarse) {
+  .install-promotion { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; margin: 0 0 16px; border: 1px solid var(--border); border-radius: 4px; background: var(--panel); }
+}
+@media (max-width: 359px) {
+  .install-promotion { padding: 10px; gap: 8px; }
+  .install-copy { gap: 0; }
+  .install-copy > svg { display: none; }
+  .install-copy strong { font-size: 11px; }
+  .install-copy small { font-size: 9px; }
+  .install-promotion .outline-button { padding: 8px; font-size: 10px; }
+}

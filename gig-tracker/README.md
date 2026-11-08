@@ -17,6 +17,12 @@ npm test
 npm run check
 ```
 
+## Install on your phone
+
+In a mobile browser, tap **Download App** beneath the introduction. Supporting Android browsers open their native install prompt when it is available. Other browsers show installation steps: on iPhone/iPad use **Share → Add to Home Screen**, leaving **Open as Web App** on if shown; on Android use the browser menu’s **Install app** or **Add to Home screen** option. If an in-app browser does not offer installation, open the site in Safari on iPhone/iPad or Chrome/Edge on Android.
+
+The install offer stays hidden when running as an installed app, after an accepted install, on wide desktops without touch, and on insecure HTTP pages. Dismissing the browser prompt keeps the app usable and allows manual installation later. There are no automatic installation prompts. Open the installed app online once to cache it for offline use. Browser and installed-app storage can be separate, so check your match before continuing play in the installed app.
+
 ## Playing
 
 - Each player starts with exactly one D4, D6, D8, D10, D12 and D20 in Fixer. Use **New match** to choose names and first player.
