@@ -1,6 +1,6 @@
 export const FEEDBACK_STORAGE = 'gig-tracker:feedback:v1';
 export const SOUND_FILES = Object.freeze({
-  shock: 'short-circuit', slash: 'katana-slash', quickhack: 'quickhack', braindance: 'braindance', eddies: 'eddies'
+  shock: 'short-circuit', slash: 'katana-slash', quickhack: 'quickhack', braindance: 'braindance', eddies: 'eddies', vs: 'vs-button'
 });
 const defaults = { muted: false, volume: 0.45, effects: true };
 
@@ -79,9 +79,26 @@ export function createSoundPlayer({ storage, createAudio = () => new Audio(), is
 }
 
 const activeEffects = new Map();
+let vsEffect = null;
+function clearVsEffect() {
+  if (!vsEffect) return;
+  clearTimeout(vsEffect.timer);
+  vsEffect.button.classList.remove('vs-feedback');
+  vsEffect = null;
+}
 export function clearEffects() {
+  clearVsEffect();
   for (const { node, timer } of activeEffects.values()) { clearTimeout(timer); node.remove(); }
   activeEffects.clear();
+}
+export function showVsEffect() {
+  const button = document.getElementById('view-toggle');
+  if (!button) return;
+  clearVsEffect();
+  // Restart the pulse on every press, including quick switches in either direction.
+  void button.offsetWidth;
+  button.classList.add('vs-feedback');
+  vsEffect = { button, timer: setTimeout(clearVsEffect, 650) };
 }
 export function showPlayerEffect({ player, effect }) {
   const card = document.querySelector(`.player-card[data-player="${player}"]`);

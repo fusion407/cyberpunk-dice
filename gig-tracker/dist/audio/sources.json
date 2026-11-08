@@ -97,6 +97,24 @@
         "bytes": 218702,
         "sha256": "e4b43e73a6811e75c92eb323f297bea9b69966ecf1b0407c51685a04bb904df8"
       }
+    },
+    {
+      "name": "vs-button",
+      "id": "228787330",
+      "event": "sq027_sc_06_panam_press_button",
+      "databaseUrl": "https://sounddb.redmodding.org/sfx/228787330",
+      "downloadUrl": "https://static.zhincore.eu/cp/sfx/228787330.ogg",
+      "durationSeconds": 0.134,
+      "original": {
+        "file": "vs-button.ogg",
+        "bytes": 510,
+        "sha256": "ac0c6548c73c02a128b4eb6548c6566113d5cc59f2e9c15d5882ea678367963c"
+      },
+      "playback": {
+        "file": "vs-button.wav",
+        "bytes": 6476,
+        "sha256": "1079327f63408e0f1d0e34887725ca6c19368004e2542d3f7d7a0c4e47b34539"
+      }
     }
   ]
 }

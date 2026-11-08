@@ -1,5 +1,5 @@
 import { createGame, transition, migrateGame, DIE_TYPES, allDice, legalFixerDice, needsTurnGig, canSteal, streetCred, RULES_URL } from './game.js';
-import { FEEDBACK_STORAGE, SOUND_FILES, createSoundPlayer, feedbackForAction, showPlayerEffect, clearEffects } from './feedback.js';
+import { FEEDBACK_STORAGE, SOUND_FILES, createSoundPlayer, feedbackForAction, showPlayerEffect, showVsEffect, clearEffects } from './feedback.js';
 const $ = id => document.getElementById(id);
 const esc = text => String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const STORAGE = 'gig-tracker:match:v1';
@@ -68,7 +68,7 @@ function renderSoundControls() {
   document.querySelectorAll('[data-action="preview-sound"]').forEach(button => { button.disabled = !enabled; });
 }
 function soundSettings() {
-  return `<fieldset class="feedback-settings"><legend>Sound & effects</legend><label class="feedback-option" for="sound-enabled">Sound effects<input id="sound-enabled" type="checkbox"></label><label class="feedback-option" for="sound-volume">Volume <output id="sound-volume-label" for="sound-volume"></output></label><div class="feedback-option"><input id="sound-volume" type="range" min="0" max="100" step="5" aria-label="Sound effects volume"></div><label class="feedback-option" for="effects-enabled">Visual effects<input id="effects-enabled" type="checkbox"></label><p class="form-note">Steals hit the rival’s side. New Gigs trigger a quickhack or braindance; saved face changes play the eddies cue. Preferences save immediately.</p><div class="sound-previews" role="group" aria-label="Preview sound effects">${Object.keys(SOUND_FILES).map(id => `<button type="button" class="outline-button" data-action="preview-sound" data-sound="${id}">▶ ${{shock:'Short circuit',slash:'Katana slash',quickhack:'Quickhack',braindance:'Braindance',eddies:'Eddies'}[id]}</button>`).join('')}</div></fieldset>`;
+  return `<fieldset class="feedback-settings"><legend>Sound & effects</legend><label class="feedback-option" for="sound-enabled">Sound effects<input id="sound-enabled" type="checkbox"></label><label class="feedback-option" for="sound-volume">Volume <output id="sound-volume-label" for="sound-volume"></output></label><div class="feedback-option"><input id="sound-volume" type="range" min="0" max="100" step="5" aria-label="Sound effects volume"></div><label class="feedback-option" for="effects-enabled">Visual effects<input id="effects-enabled" type="checkbox"></label><p class="form-note">Steals hit the rival’s side. New Gigs trigger a quickhack or braindance; saved face changes play the eddies cue. Preferences save immediately.</p><div class="sound-previews" role="group" aria-label="Preview sound effects">${Object.keys(SOUND_FILES).map(id => `<button type="button" class="outline-button" data-action="preview-sound" data-sound="${id}">▶ ${{shock:'Short circuit',slash:'Katana slash',quickhack:'Quickhack',braindance:'Braindance',eddies:'Eddies',vs:'VS button'}[id]}</button>`).join('')}</div></fieldset>`;
 }
 function die(value, extra = '', sides = 6) { return `<span class="poly-die ${extra}" role="img" aria-label="D${sides} showing ${value}"><small>D${sides}</small><strong>${value}</strong></span>`; }
 function gigToken(d, player) { return `<button class="gig-token owner-${d.owner}" data-action="edit-gig" data-player="${player}" data-die="${esc(d.id)}" aria-label="Edit ${esc(game.players[player].name)} Gig: D${d.sides ?? '?'} showing ${d.value}, owned by ${esc(game.players[d.owner]?.name ?? 'unrecorded')}" ${game.result || game.needsDiceReview ? 'disabled' : ''}><small>D${d.sides ?? '?'}</small><strong>${d.value}</strong><i>${d.owner===null?'?':d.owner+1}</i></button>`; }
@@ -230,7 +230,7 @@ document.addEventListener('click',event=>{
     notify('Started fresh. Undo restores your saved match.');
     document.querySelector('.reserve-roll:not(:disabled)')?.focus({preventScroll:true});return;
   }
-  if(action==='toggle-table'){if(!tableViewport.matches)return;preferTableView=!tableView;try{localStorage.setItem(VIEW_STORAGE,String(preferTableView));}catch{}applyView();renderReview();return;}
+  if(action==='toggle-table'){if(!tableViewport.matches)return;preferTableView=!tableView;try{localStorage.setItem(VIEW_STORAGE,String(preferTableView));}catch{}applyView();renderReview();sound.play('vs');if(sound.settings.effects)showVsEffect();return;}
   if(['rules','settings','new-game'].includes(action)){showModal(action,viewer);return;}
   if(action==='close-modal'){$('modal').close();return;}
   if(action==='undo'){if(history.length){game=history.pop();save();render();notify('Last match action undone.');}return;}

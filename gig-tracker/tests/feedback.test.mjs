@@ -79,6 +79,20 @@ test('new cues stop earlier clips; zero volume, hidden pages, and unknown cues d
   assert.equal(hidden.clips.length, 0);
 });
 
+test('every VS press restarts the requested button sound and respects mute', () => {
+  const { player, clips } = audioHarness();
+  player.play('vs');
+  const clip = clips.find(audio => audio.src.endsWith('/vs-button.wav'));
+  assert.ok(clip);
+  clip.currentTime = 0.1;
+  player.play('vs');
+  assert.equal(clip.plays, 2);
+  assert.equal(clip.currentTime, 0);
+  player.configure({ muted: true }); player.play('vs');
+  assert.equal(clip.plays, 2);
+  assert.equal(clip.playing, false);
+});
+
 test('unavailable storage/audio and rejected autoplay never throw or reject into the game', async () => {
   const { player } = audioHarness('{bad json', {
     storage: { getItem() { throw new Error('blocked'); }, setItem() { throw new Error('quota'); } },

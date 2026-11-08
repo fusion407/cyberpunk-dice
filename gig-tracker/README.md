@@ -39,9 +39,11 @@ Use the saved-dice banner’s **×** to discard the old match and start fresh wi
 
 Successful steals randomly pair a short-circuit sound with an electric border or a katana impact with red slashes on the player losing the Gigs. Gaining or restoring a Gig randomly uses a quickhack or braindance cue. Saving a changed face (including a reroll to a different face) plays the eddies money jingle. Multi-Gig steals play one cue. Cancelled edits, unchanged faces, rejected moves, undo, free rolls and save synchronization stay quiet.
 
-Use the speaker button in the header or either face-to-face player half to mute. **Match settings → Sound & effects** includes saved volume, separate sound and visual toggles, and previews of all five clips. Preferences save immediately, independently of the match. Effects respect reduced-motion preferences. Audio stops when the app goes into the background, and a new cue replaces any previous cue.
+Use the speaker button in the header or either face-to-face player half to mute. **Match settings → Sound & effects** includes saved volume, separate sound and visual toggles, and previews of all six clips. Preferences save immediately, independently of the match. Effects respect reduced-motion preferences. Audio stops when the app goes into the background, and a new cue replaces any previous cue.
 
-All five clips work offline once the app has cached. No runtime connection to SoundDB is needed. [Sound credits and download links](dist/audio/README.md) list the exact SoundDB events and IDs; original Ogg files and level-matched WAV versions are included in `dist/audio/`.
+The slightly larger, brighter **VS** button plays the selected Panam button-click sound and a brief yellow/cyan ring pulse every time it switches views. The existing sound and visual toggles apply; reduced motion uses a stationary highlight. View changes preserve the match and undo history.
+
+All six clips work offline once the app has cached. No runtime connection to SoundDB is needed. [Sound credits and download links](dist/audio/README.md) list the exact SoundDB events and IDs; original Ogg files and level-matched WAV versions are included in `dist/audio/`.
 
 ## Victory rules
 

@@ -4,16 +4,16 @@
 .vs-badge {
   position: absolute;
   top: 45%;
-  left: calc(50% - 15px);
+  left: calc(50% - 17px);
   z-index: 2;
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  border: 1px solid var(--border);
+  width: 34px;
+  height: 34px;
+  border: 1px solid #85933f;
   border-radius: 50%;
   background: var(--bg);
-  color: var(--faint);
+  color: var(--yellow);
   font: 600 10px var(--mono);
   letter-spacing: 1px;
 }
@@ -27,26 +27,26 @@
     z-index: 5;
     display: grid;
     place-items: center;
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     padding: 0;
     transform: translate(-50%, -50%);
     border: 0;
     border-radius: 50%;
     background: transparent;
-    color: var(--text);
-    font: 500 9px var(--mono);
+    color: var(--yellow);
+    font: 600 10px var(--mono);
     letter-spacing: .5px;
   }
   .view-toggle span {
     display: grid;
     place-items: center;
-    width: 30px;
-    height: 30px;
-    border: 1px solid #647144;
+    width: 34px;
+    height: 34px;
+    border: 1px solid #a4b647;
     border-radius: 50%;
-    background: var(--bg);
-    box-shadow: 0 0 0 4px var(--bg);
+    background: #202718;
+    box-shadow: 0 0 0 4px var(--bg), 0 0 12px #e5f34b24;
   }
   .view-toggle:hover span, .view-toggle:focus-visible span { border-color: var(--yellow); color: var(--yellow); }
   .view-toggle:active:not(:disabled) { transform: translate(-50%, -50%); }
@@ -76,14 +76,14 @@
     height: 1px;
     background: var(--border);
   }
-  .table-view .view-toggle { top: 50%; width: 48px; height: 48px; }
+  .table-view .view-toggle { top: 50%; width: 52px; height: 52px; }
   .table-view .view-toggle span {
-    width: 38px;
-    height: 38px;
+    width: 42px;
+    height: 42px;
     color: var(--yellow);
     border-color: var(--yellow);
     background: #242c17;
-    box-shadow: 0 0 0 6px var(--bg);
+    box-shadow: 0 0 0 6px var(--bg), 0 0 14px #e5f34b28;
   }
   .table-view .player-card {
     grid-column: 1;
