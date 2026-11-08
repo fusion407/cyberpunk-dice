@@ -1,4 +1,15 @@
 .street-cred { color: var(--accent) !important; letter-spacing: .5px !important; }
+.player-card .count-details .street-cred { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 3px; padding: 5px 7px; border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); border-radius: 4px; background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.player-card .count-details .cred-label { margin: 0; color: var(--accent); font: 500 8px/1.2 var(--mono); letter-spacing: .4px; white-space: nowrap; }
+.player-card .count-details .cred-value { color: var(--accent); font: 600 30px/1 var(--display); letter-spacing: .5px; }
+.face-label { display: block; margin: 0 0 10px; text-align: center; font: 10px var(--mono); color: var(--muted); }
+.face-stepper { display: grid; grid-template-columns: 64px minmax(0, 1fr) 64px; align-items: center; gap: 14px; }
+.face-stepper button { min-height: 64px; border: 1px solid #657548; border-radius: 5px; color: var(--yellow); background: #252e1b; font-size: 36px; }
+.face-stepper button:hover:not(:disabled) { border-color: var(--yellow); background: #354323; }
+.face-stepper input { min-width: 0; width: 100%; height: 82px; border: 1px solid var(--border); border-radius: 5px; background: #10170d; color: var(--text); font: 600 56px/1 var(--display); text-align: center; appearance: textfield; -moz-appearance: textfield; }
+.face-stepper input::-webkit-inner-spin-button, .face-stepper input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.face-preview { min-height: 22px; margin: 12px 0; color: var(--yellow); font: 11px/1.6 var(--mono); text-align: center; }
+#face-form .form-note { text-align: center; }
 .gig-rack { justify-content: flex-start; overflow-x: auto; gap: 5px; min-height: 44px; padding: 3px 2px; scrollbar-width: thin; scrollbar-color: #4f5b40 transparent; }
 .gig-token, .poly-die { position: relative; flex-shrink: 0; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; width: 34px; height: 40px; gap: 2px; border: 1px solid #58624e; border-radius: 5px; color: var(--accent, var(--text)); background: #222a20; }
 .gig-token { cursor: pointer; padding: 3px; }
@@ -68,10 +79,45 @@
   .dice-review { font-size: 9px; gap: 7px; }
   .dice-review .outline-button { font-size: 9px; padding: 7px; }
 }
-@media (max-width: 600px) and (max-height: 620px) {
+@media (max-width: 600px) {
+  .player-card .count-details .street-cred { padding: 4px 5px; }
+  .player-card .count-details .cred-label { font-size: 7px; letter-spacing: .1px; }
+  .player-card .count-details .cred-value { font-size: 28px; }
+  .face-stepper { grid-template-columns: 60px minmax(0, 1fr) 60px; gap: 10px; }
+  .gig-token { min-width: 36px; width: 36px; height: 38px; }
+}
+@media (min-width: 601px) {
+  .table-view .player-card .count-details .street-cred { padding: 8px 12px; }
+  .table-view .player-card .count-details .cred-label { font-size: 10px; }
+  .table-view .player-card .count-details .cred-value { font-size: 42px; }
+  .table-view .gig-token { min-width: 44px; width: 44px; height: 46px; }
+  .table-view .gig-token strong { font-size: 23px; }
+  .table-view .gig-token small { font-size: 9px; }
+}
+@media (max-width: 359px) {
+  .player-card .gig-count { gap: 5px; }
+  .player-card .count-number { font-size: 70px; }
+}
+@media (max-width: 1200px) and (max-height: 620px), (any-pointer: coarse) and (max-height: 620px) {
+  .table-view .player-card .count-details > strong { display: none; }
+  .table-view .player-card .count-details .street-cred { margin-top: 0; padding: 2px 5px; }
+  .table-view .player-card .count-details .cred-label { font-size: 6px; }
+  .table-view .player-card .count-details .cred-value { font-size: 24px; }
+}
+@media (max-width: 1200px) and (max-height: 620px), (any-pointer: coarse) and (max-height: 620px) {
   .table-view .player-card { gap: 2px; padding-top: 5px; padding-bottom: 5px; }
+  .table-view .player-card .count-number { font-size: 56px; }
   .table-view .gig-rack { min-height: 30px; padding-bottom: 1px; }
   .table-view .gig-token { min-width: 27px; width: 27px; height: 28px; }
   .table-view .gig-token strong { font-size: 13px; }
   .table-view .reserve-die { font-size: 6px; }
+}
+
+@media (min-width: 601px) and (min-height: 621px) and (max-height: 850px) {
+  .table-view .player-card { gap: 5px; padding: 9px 12px; }
+  .table-view .gig-rack { padding: 0 0 4px; }
+  .table-view .count-details > strong,
+  .table-view .count-details > span:not(.street-cred) { display: none; }
+  .table-view .player-card .count-number { font-size: 70px; }
+  .table-view .count-number::after { content: 'GIGS'; display: block; margin-top: 2px; color: var(--muted); font: 8px/10px var(--mono); letter-spacing: 1px; text-align: center; }
 }

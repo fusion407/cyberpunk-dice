@@ -1,9 +1,9 @@
-import { createGame, transition, migrateGame, DIE_TYPES, allDice, legalFixerDice, streetCred, RULES_URL } from './game.js';
+import { createGame, transition, migrateGame, DIE_TYPES, allDice, legalFixerDice, needsTurnGig, canSteal, streetCred, RULES_URL } from './game.js';
 const $ = id => document.getElementById(id);
 const esc = text => String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const STORAGE = 'gig-tracker:match:v1';
 const VIEW_STORAGE = 'gig-tracker:table-view:v1';
-const mobileViewport = window.matchMedia('(max-width: 600px)');
+const tableViewport = window.matchMedia('(max-width: 1200px), (any-pointer: coarse)');
 let game = createGame(), history = [], storageAvailable = true;
 let diceQuantity = 1, quickSides = 6, lastQuickSides = 6, quickResults = [], rolling = false;
 let toastTimer, modalKind = null, modalContext = {}, selectedDieId = null;
@@ -16,7 +16,7 @@ try {
   preferTableView = localStorage.getItem(VIEW_STORAGE) === 'true';
 } catch { /* An unavailable or malformed save must not prevent play. */ }
 function applyView() {
-  const next = mobileViewport.matches && preferTableView, changed = next !== tableView;
+  const next = tableViewport.matches && preferTableView, changed = next !== tableView;
   if (next && !tableView) standardScrollY = window.scrollY;
   tableView = next; document.body.classList.toggle('table-view', tableView);
   $('modal').classList.toggle('table-top-dialog', tableView && dialogViewer === 1);
@@ -24,7 +24,7 @@ function applyView() {
   if (toggle) { const label = tableView ? 'Return to standard view' : 'Switch to face-to-face table view'; toggle.setAttribute('aria-pressed', String(tableView)); toggle.setAttribute('aria-label', label); toggle.title = label; }
   if (changed) window.scrollTo(0, tableView ? 0 : standardScrollY);
 }
-mobileViewport.addEventListener('change', applyView);
+tableViewport.addEventListener('change', applyView);
 // Rejection sampling remains unbiased for every supported polyhedral die.
 function randomDie(sides = 6) {
   if (!globalThis.crypto?.getRandomValues) return Math.floor(Math.random() * sides) + 1;
@@ -37,11 +37,13 @@ function notify(text) { $('toast').textContent = text; $('toast').classList.add(
 function commit(next) {
   if (next === game) return;
   const hadWinner = !!game.result;
+  const turnStarted = next.turn > game.turn;
   history.push(structuredClone(game)); history = history.slice(-100); game = next; save(); render();
   if (game.result && !hadWinner) {
     const target = tableView ? document.querySelector(`.player-card[data-player="${game.result.winners[0]}"] .table-result`) : $('match-announcement');
     target.setAttribute('tabindex','-1'); target.focus({preventScroll:tableView}); navigator.vibrate?.([60,50,100]);
   }
+  if(turnStarted && needsTurnGig(game))showModal('roll-in',game.active);
 }
 function dispatch(action) { commit(transition(game, action)); }
 const diceIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 9 6v8l-9 6-9-6V8l9-6Z M3 8l9 5 9-5M12 13v9"/></svg>';
@@ -51,7 +53,7 @@ function gigToken(d, player) { return `<button class="gig-token owner-${d.owner}
 function playerCard(p, index) {
   const current = index === game.active && !game.result, won = game.result?.winners.includes(index), count = p.gigs.length;
   const blocked = !!game.result || game.needsDiceReview;
-  const status = game.result ? won ? game.result.winners.length===2 ? 'DRAW' : 'WINNER' : 'MATCH OVER' : current ? '● YOUR TURN' : 'STANDING BY';
+  const status = game.result ? won ? game.result.winners.length===2 ? 'DRAW' : 'WINNER' : 'MATCH OVER' : current ? needsTurnGig(game) ? '● ROLL YOUR GIG' : '● YOUR TURN' : 'STANDING BY';
   const rack = p.gigs.map(d => gigToken(d,index)).join('') || '<span class="empty-gigs">NO GIGS IN PLAY</span>';
   const rollDisabled = blocked || game.rolled || !p.fixer.length;
   const playerTurn = p.turns + (current ? 1 : 0);
@@ -60,9 +62,9 @@ function playerCard(p, index) {
   return `<article class="player-card ${index===1?'player-two':''} ${current?'active':''} ${won?'winner':''}" data-player="${index}" aria-label="${esc(p.name)}${current?', active player':''}">
     <div class="table-only table-turn-track" aria-label="${esc(p.name)} turn progress"><span>TURN <b>${String(Math.max(1,playerTurn)).padStart(2,'0')}</b><small>${game.overtime?'OVERTIME':'/ 07'}</small></span><div class="table-turn-markers">${Array.from({length:7},(_,i)=>`<span class="table-turn-marker ${p.turns>i?'done':current&&p.turns===i?'current':''}">${i+1}</span>`).join('')}</div></div>
     <div class="player-heading"><div class="player-identity"><span class="player-number">0${index+1}</span><div><h2>${esc(p.name)}</h2><small>${index===game.first?'FIRST TO PLAY':'SECOND TO PLAY'}</small></div></div><span class="player-status">${status}</span></div>
-    <div class="player-main"><div class="gig-count"><span class="count-number" aria-live="polite" aria-label="${count} Gig dice">${count}</span><div class="count-details"><strong>/ 7</strong><span>GIG DICE</span><span class="street-cred">CRED ${streetCred(p)??'NULL'}</span></div></div><div class="table-only table-quick-roll"><button class="table-roll-button" data-action="table-roll" data-player="${index}" aria-label="Choose a free die to roll for ${esc(p.name)}"><span class="table-roll-output" aria-live="polite">${free?.value ?? diceIcon}</span><span>${free?'D'+free.sides+' · ROLL':'ROLL DIE'}</span></button><small>FREE ROLL · NO GIG CHANGE</small></div></div>
+    <div class="player-main"><div class="gig-count"><span class="count-number" aria-live="polite" aria-label="${count} Gig dice">${count}</span><div class="count-details"><strong>/ 7</strong><span>GIG DICE</span><span class="street-cred" aria-label="${esc(p.name)} Street Cred: ${streetCred(p)??'Null'}"><span class="cred-label">STREET CRED</span><strong class="cred-value">${streetCred(p)??'NULL'}</strong></span></div></div><div class="table-only table-quick-roll"><button class="table-roll-button" data-action="table-roll" data-player="${index}" aria-label="Choose a free die to roll for ${esc(p.name)}"><span class="table-roll-output" aria-live="polite">${free?.value ?? diceIcon}</span><span>${free?'D'+free.sides+' · ROLL':'ROLL DIE'}</span></button><small>FREE ROLL · NO GIG CHANGE</small></div></div>
     <div class="gig-rack" aria-label="${esc(p.name)} Gig dice">${rack}</div>
-    <div class="counter-controls"><button data-action="remove" data-player="${index}" aria-label="Choose a Gig to remove from ${esc(p.name)}" ${!count||blocked?'disabled':''}>−</button><button class="steal-button" data-action="steal" data-player="${index}" aria-label="Choose Gigs for ${esc(p.name)} to steal" ${!game.players[1-index].gigs.length||blocked?'disabled':''}>⇄ Steal</button><button data-action="add" data-player="${index}" aria-label="Add or restore a Gig for ${esc(p.name)}" ${blocked?'disabled':''}>+</button></div>
+    <div class="counter-controls"><button data-action="remove" data-player="${index}" aria-label="Choose a Gig to remove from ${esc(p.name)}" ${!count||blocked?'disabled':''}>−</button><button class="steal-button" data-action="steal" data-player="${index}" aria-label="Choose Gigs for ${esc(p.name)} to steal" title="${needsTurnGig(game)?'The active player must roll their turn Gig before stealing.':'Choose the exact rival Gigs to steal.'}" ${!game.players[1-index].gigs.length||!canSteal(game)?'disabled':''}>⇄ Steal</button><button data-action="add" data-player="${index}" aria-label="Add or restore a Gig for ${esc(p.name)}" ${blocked?'disabled':''}>+</button></div>
     <div class="pending-win">${count>=7&&!game.overtime&&!game.result?'HOLD UNTIL YOUR NEXT TURN TO WIN':won?'NIGHT CITY IS YOURS.':'&nbsp;'}</div>
     <div class="reserve"><span>FIXER</span><div class="reserve-amount" aria-label="${p.fixer.length} dice in Fixer">${p.fixer.map(d=>`<span class="reserve-die ${d.sides===20&&p.fixer.length>1?'locked':''}" title="${d.sides===20&&p.fixer.length>1?'D20 is locked until the other Fixer dice are used':'Available in Fixer'}">D${d.sides??'?'}</span>`).join('')||'<b>EMPTY</b>'}</div>${current?`<button class="reserve-roll" data-action="roll-in" ${rollDisabled?'disabled':''}>${diceIcon}${game.rolled?'GIG ROLLED IN':!p.fixer.length?'RESERVE EMPTY':'CHOOSE GIG'}</button>`:`<span class="reserve-wait">${p.turns} TURNS COMPLETED</span>`}</div>
     <div class="table-only table-footer"><div class="table-result ${resultText?'has-result':''}" aria-live="polite">${resultText?`<strong>${resultText}</strong>${game.result?`<span>${esc(game.result.reason)}</span>`:''}`:''}</div><div class="table-actions"><button class="icon-button" data-action="settings" aria-label="Match settings for ${esc(p.name)}">${settingsIcon}</button><button class="table-undo" data-action="undo" aria-label="Undo last action for ${esc(p.name)}" ${!history.length?'disabled':''}>↶ Undo</button>${game.result?'<button class="primary-button table-end-turn" data-action="new-game">New match ↗</button>':`<button class="primary-button table-end-turn" data-action="end-turn" data-player="${index}" aria-label="End ${esc(p.name)}’s turn" ${!current||blocked?'disabled':''}>${current?'End turn →':'Waiting for rival'}</button>`}</div></div>
@@ -91,7 +93,7 @@ function render() {
   const active = game.players[game.active];
   $('current-turn-name').textContent = game.result ? 'Match concluded' : `${active.name}’s turn · ${active.turns + 1}`;
   document.querySelector('.turn-indicator').style.background = game.active === 0 ? 'var(--cyan)' : 'var(--yellow)';
-  $('turn-hint').textContent = game.result ? game.result.reason : game.overtime ? 'Sudden death. Seven Gigs wins immediately, for either player.' : game.rolled ? 'Gig rolled in. Play your turn, then pass to your rival.' : active.fixer.length ? 'Check Gigs, then roll in a die from your Fixer.' : 'Fixer empty. Play your turn, then pass to your rival.';
+  $('turn-hint').textContent = game.result ? game.result.reason : needsTurnGig(game) ? 'Setup phase: roll your Gig from Fixer before stealing.' : game.overtime ? 'Sudden death. Seven Gigs wins immediately, for either player.' : game.rolled ? 'Gig rolled in. Play your turn, then pass to your rival.' : 'Fixer empty. Play your turn, then pass to your rival.';
   $('overtime-note').textContent = game.overtime ? 'Overtime is active. Gig totals are checked after every change.' : game.emptyStarts >= 2 ? 'Overtime begins when this turn ends. Both players started with empty Fixers.' : game.emptyStarts === 1 ? 'First empty-Fixer start recorded. Waiting for the next turn’s check.' : 'Overtime normally begins after both players finish turn 7.';
   $('end-turn').disabled = !!game.result || game.needsDiceReview;
   $('undo').disabled = !history.length;
@@ -144,8 +146,10 @@ function showModal(kind, viewer=game.active, context={}) {
     const dice=kind==='remove'?game.players[viewer].gigs:game.removed;
     modal.innerHTML=modalHeading(kind==='remove'?'Remove which Gig?':'Restore which Gig?')+`<p class="modal-intro">${kind==='remove'?'Choose the exact die to remove. It remains available to restore with +.':'Restore a physical die that was previously removed. No extra dice are created.'}</p><div class="die-choice-grid">${dice.map(d=>`<button class="die-choice" data-action="${kind==='remove'?'confirm-remove':'confirm-restore'}" data-die="${esc(d.id)}">${die(d.value,'',d.sides)}<small>P${d.owner+1} · D${d.sides}</small></button>`).join('')}</div>`;
   } else if(kind==='edit-gig') {
-    const d=game.players[viewer].gigs.find(d=>d.id===context.dieId);if(!d)return;
-    modal.innerHTML=modalHeading(`D${d.sides} · ${esc(game.players[viewer].name)}`)+`<p class="modal-intro">Originally ${esc(game.players[d.owner]?.name ?? 'unrecorded')}’s die. Adjust its face for a card effect or reroll; it still counts as one Gig.</p><form id="face-form"><div class="form-field"><label for="gig-face">FACE / 1–${d.sides}</label><input id="gig-face" type="number" min="1" max="${d.sides}" value="${d.value}" required></div><div class="modal-buttons"><button type="button" class="outline-button" data-action="reroll-gig">Reroll D${d.sides}</button><button class="primary-button">Save face</button></div></form><div class="modal-buttons"><button class="outline-button" data-action="return-fixer">Return to Fixer</button><button class="outline-button" data-action="confirm-remove" data-die="${esc(d.id)}">Remove Gig</button></div>`;
+    const player=context.player??viewer,d=game.players[player].gigs.find(d=>d.id===context.dieId);if(!d)return;
+    modalContext.startValue=d.value;
+    modal.innerHTML=modalHeading(`D${d.sides} · ${esc(game.players[player].name)}`)+`<p class="modal-intro">Adjust this friendly or rival Gig for a card effect. Tap − / + once per point, then save. Its type and owner stay the same.</p><form id="face-form"><label class="face-label" for="gig-face">FACE / 1–${d.sides}</label><div class="face-stepper"><button type="button" data-action="decrease-face" aria-label="Decrease Gig value">−</button><input id="gig-face" type="number" inputmode="numeric" min="1" max="${d.sides}" value="${d.value}" required aria-describedby="face-preview"><button type="button" data-action="increase-face" aria-label="Increase Gig value">+</button></div><p id="face-preview" class="face-preview" aria-live="polite"></p><p class="form-note">Stay within the adjustment allowed by your card. Closing without saving cancels the change.</p><div class="modal-buttons"><button type="button" class="outline-button" data-action="reroll-gig">Reroll D${d.sides}</button><button class="primary-button" id="save-face">Save face</button></div></form><div class="modal-buttons">${tableView?'<button class="text-button" data-action="rotate-editor">Rotate editor ↻</button>':''}<button class="outline-button" data-action="return-fixer">Return to Fixer</button><button class="outline-button" data-action="confirm-remove" data-die="${esc(d.id)}">Remove Gig</button></div>`;
+    updateFacePreview();
   } else if(kind==='table-roll') {
     modal.innerHTML=modalHeading('Choose a free roll.')+`<p class="modal-intro">Free rolls never move dice or change Gigs. D20-last applies to taking a Gig from Fixer, not these free rolls.</p><div class="die-choice-grid">${DIE_TYPES.map(sides=>`<button class="die-choice" data-action="free-roll-type" data-sides="${sides}">${diceIcon}<strong>Roll D${sides}</strong></button>`).join('')}</div>`;
   } else if(kind==='new-game'||kind==='settings') {
@@ -155,6 +159,18 @@ function showModal(kind, viewer=game.active, context={}) {
     modal.innerHTML=modalHeading('Know the rules.')+`<div class="rules-card"><h3>01 / Six different dice</h3><p>Each player owns one D4, D6, D8, D10, D12 and D20. Choose any die remaining in Fixer each turn, except <em>D20 must be last</em>. Roll digitally or record a physical face.</p></div><div class="rules-card"><h3>02 / Steal the exact Gig</h3><p>Choose any rival Gig regardless of its value. Its type, face and original owner are preserved. For multiple Gigs, select all before confirming. Tap a friendly Gig to adjust its face for card effects.</p></div><div class="rules-card"><h3>03 / Regulation</h3><p>Start your turn with <em>7+ Gigs</em> to win, before rolling a new die. Each physical die is one Gig; Street Cred is the sum of their faces.</p></div><div class="rules-card overtime-rule"><h3>04 / Overtime</h3><p>Overtime begins at the end of the second consecutive turn whose player began with an empty Fixer, normally after both seventh turns. Seven Gigs then wins immediately, including Gigs already held when overtime starts.</p></div><p class="rules-extras">+ rolls a new Gig or restores a removed die. − lets you choose a die to remove. Fixer returns and physical setup corrections are available for card effects. Resolve card-specific alternate victories at the table.</p><a class="rules-link" href="${RULES_URL}" target="_blank" rel="noopener noreferrer">Official rules · §§6, 7.2, 8.6.5, 11.5 ↗</a>`;
   }
   if(!modal.open)modal.showModal();
+}
+function updateFacePreview() {
+  const input=$('gig-face');if(!input)return;
+  const player=modalContext.player??dialogViewer,die=game.players[player].gigs.find(d=>d.id===modalContext.dieId);
+  if(!die)return;
+  const value=input.valueAsNumber,valid=Number.isInteger(value)&&value>=1&&value<=die.sides;
+  document.querySelector('[data-action="decrease-face"]').disabled=!valid||value<=1;
+  document.querySelector('[data-action="increase-face"]').disabled=!valid||value>=die.sides;
+  $('save-face').disabled=!valid;
+  if(!valid){$('face-preview').textContent=`Choose a whole number from 1 to ${die.sides}.`;return;}
+  const delta=value-modalContext.startValue;
+  $('face-preview').textContent=`${delta===0?'No change':`${delta>0?'+':''}${delta} from ${modalContext.startValue}`} · Street Cred ${streetCred(game.players[player])} → ${streetCred(game.players[player])+delta}`;
 }
 function renderGigPicker() {
   const p=game.players[game.active],legal=legalFixerDice(p),selected=p.fixer.find(d=>d.id===selectedDieId);
@@ -180,9 +196,10 @@ document.addEventListener('click',event=>{
     const next=createGame(game.players.map(p=>p.name),game.first);
     quickResults=[];tableRolls.fill(null);$('modal').close();commit(next);
     notify('Started fresh. Undo restores your saved match.');
-    document.querySelector('.reserve-roll:not(:disabled)')?.focus({preventScroll:true});return;
+    if(needsTurnGig(game))showModal('roll-in',game.active);
+    else document.querySelector('.reserve-roll:not(:disabled)')?.focus({preventScroll:true});return;
   }
-  if(action==='toggle-table'){if(!mobileViewport.matches)return;preferTableView=!tableView;try{localStorage.setItem(VIEW_STORAGE,String(preferTableView));}catch{}applyView();renderReview();return;}
+  if(action==='toggle-table'){if(!tableViewport.matches)return;preferTableView=!tableView;try{localStorage.setItem(VIEW_STORAGE,String(preferTableView));}catch{}applyView();renderReview();return;}
   if(['rules','settings','new-game'].includes(action)){showModal(action,viewer);return;}
   if(action==='close-modal'){$('modal').close();return;}
   if(action==='undo'){if(history.length){game=history.pop();save();render();notify('Last match action undone.');}return;}
@@ -190,13 +207,19 @@ document.addEventListener('click',event=>{
   if(action==='free-roll-type'){const sides=Number(button.dataset.sides);tableRolls[dialogViewer]={sides,value:randomDie(sides)};$('modal').close();render();return;}
   if(action==='roll-in'){showModal('roll-in',game.active);return;}
   if(action==='add'){addGig(viewer);return;}
-  if(action==='remove'||action==='steal'){showModal(action,viewer);return;}
-  if(action==='edit-gig'){showModal('edit-gig',viewer,{dieId:button.dataset.die});return;}
+  if(action==='remove'||action==='steal'){if(action==='steal'&&!canSteal(game))return;showModal(action,viewer);return;}
+  if(action==='edit-gig'){showModal('edit-gig',tableView?game.active:viewer,{dieId:button.dataset.die,player:viewer});return;}
+  if(action==='decrease-face'||action==='increase-face'){
+    const input=$('gig-face'),value=input.valueAsNumber;
+    if(Number.isInteger(value))input.value=String(Math.max(1,Math.min(Number(input.max),value+(action==='increase-face'?1:-1))));
+    updateFacePreview();return;
+  }
+  if(action==='rotate-editor'){dialogViewer=1-dialogViewer;applyView();return;}
   if(action==='select-fixer'){selectedDieId=button.dataset.die;renderGigPicker();return;}
   if(action==='roll-selected'){const d=game.players[game.active].fixer.find(d=>d.id===selectedDieId);if(d)finishRoll(randomDie(d.sides));return;}
-  if(action==='confirm-remove'||action==='confirm-restore'){applyAndClose({type:action==='confirm-remove'?'remove':'restore',player:dialogViewer,dieId:button.dataset.die});return;}
-  if(action==='return-fixer'){applyAndClose({type:'return-fixer',player:dialogViewer,dieId:modalContext.dieId});return;}
-  if(action==='reroll-gig'){const d=game.players[dialogViewer].gigs.find(d=>d.id===modalContext.dieId);if(d)applyAndClose({type:'set-value',player:dialogViewer,dieId:d.id,value:randomDie(d.sides)});return;}
+  if(action==='confirm-remove'||action==='confirm-restore'){applyAndClose({type:action==='confirm-remove'?'remove':'restore',player:modalContext.player??dialogViewer,dieId:button.dataset.die});return;}
+  if(action==='return-fixer'){applyAndClose({type:'return-fixer',player:modalContext.player??dialogViewer,dieId:modalContext.dieId});return;}
+  if(action==='reroll-gig'){const player=modalContext.player??dialogViewer,d=game.players[player].gigs.find(d=>d.id===modalContext.dieId);if(d)applyAndClose({type:'set-value',player,dieId:d.id,value:randomDie(d.sides)});return;}
   if(action==='end-turn'){
     if(button.dataset.player!==undefined&&Number(button.dataset.player)!==game.active)return;
     if(!game.rolled&&game.players[game.active].fixer.length)showModal('roll-in',game.active,{endAfter:true});else dispatch({type:'end-turn'});return;
@@ -215,14 +238,15 @@ document.addEventListener('change',event=>{
   if(event.target.id==='quick-type'){quickSides=Number(event.target.value);renderRoller();}
   if(event.target.matches('#steal-form input[name="gig"]'))$('confirm-steal').disabled=!document.querySelector('#steal-form input:checked');
 });
+document.addEventListener('input',event=>{if(event.target.id==='gig-face')updateFacePreview();});
 document.addEventListener('submit',event=>{
   const form=event.target;event.preventDefault();
   if(form.id==='physical-form'){finishRoll(Number($('physical-face').value));return;}
-  if(form.id==='face-form'){applyAndClose({type:'set-value',player:dialogViewer,dieId:modalContext.dieId,value:Number($('gig-face').value)});return;}
+  if(form.id==='face-form'){applyAndClose({type:'set-value',player:modalContext.player??dialogViewer,dieId:modalContext.dieId,value:Number($('gig-face').value)});return;}
   if(form.id==='steal-form'){applyAndClose({type:'steal',player:dialogViewer,dieIds:new FormData(form).getAll('gig')});return;}
   if(form.id==='match-form'){
     const data=new FormData(form),names=[data.get('name-0'),data.get('name-1')];
-    if(modalKind==='new-game'){$('modal').close();commit(createGame(names,Number(data.get('first'))));return;}
+    if(modalKind==='new-game'){$('modal').close();commit(createGame(names,Number(data.get('first'))));if(needsTurnGig(game))showModal('roll-in',game.active);return;}
     const inventory=allDice().map(d=>({id:d.id,zone:data.get('zone-'+d.id),value:Number(data.get('face-'+d.id))}));
     applyAndClose({type:'settings',names,inventory});
   }
@@ -232,5 +256,5 @@ window.addEventListener('storage',event=>{
   if(event.key!==STORAGE||!event.newValue)return;
   try{const saved=JSON.parse(event.newValue),next=migrateGame(saved.game);if(next){game=next;history=Array.isArray(saved.history)?saved.history.map(migrateGame).filter(Boolean).slice(-100):[];$('modal').close();render();notify('Match updated from another tab.');}}catch{}
 });
-save();render();
+save();render();if(needsTurnGig(game))showModal('roll-in',game.active);
 if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});

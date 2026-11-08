@@ -1,12 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createGame, transition, isValidGame, migrateGame, rollDie, allDice, legalFixerDice, streetCred, DIE_TYPES } from '../dist/game.js';
+import { createGame, transition, isValidGame, migrateGame, rollDie, allDice, legalFixerDice, needsTurnGig, canSteal, streetCred, DIE_TYPES } from '../dist/game.js';
 const step = (g, action) => { const next=transition(g,action); assert.ok(isValidGame(next),'physical inventory remains valid'); return next; };
 const roll = (g, sides=legalFixerDice(g.players[g.active])[0]?.sides, value=1) => step(g,{type:'roll-in',dieId:g.players[g.active].fixer.find(d=>d.sides===sides)?.id,value});
 function seventh(first=0){let g=createGame(['V','Jackie'],first);for(let i=0;i<12;i++){g=roll(g);g=step(g,{type:'end-turn'});}return g;}
 function setup(g, gigs0=[], gigs1=[]){return step(g,{type:'settings',inventory:allDice().map(d=>({id:d.id,zone:gigs0.includes(d.id)?'0-gigs':gigs1.includes(d.id)?'1-gigs':`${d.owner}-fixer`,value:Math.min(d.sides,3)}))});}
 const seven=['0-4','0-6','0-8','0-10','0-12','0-20','1-4'];
 const asLegacy=g=>{const old=structuredClone(g);old.version=1;delete old.needsDiceReview;delete old.removed;old.players.forEach(p=>{p.fixer=p.fixer.length;p.gigs=p.gigs.map(d=>d.value);});return old;};
+function mainPhase(g){
+  if(!needsTurnGig(g))return g;
+  const die=legalFixerDice(g.players[g.active])[0];
+  return step(roll(g,die.sides),{type:'return-fixer',player:g.active,dieId:die.id});
+}
 
 test('each player starts with exactly one D4 D6 D8 D10 D12 D20',()=>{
   const g=createGame();assert.ok(isValidGame(g));assert.equal(allDice().length,12);
@@ -36,26 +41,47 @@ test('faces are validated against the selected die, including 10 and 20',()=>{
   assert.equal(roll(g,10,10).players[0].gigs[0].value,10);
 });
 test('stealing moves the explicitly selected die rather than the last die',()=>{
-  let g=setup(createGame(),[],['1-4','1-8','1-12']);const selected=structuredClone(g.players[1].gigs[0]);
+  let g=mainPhase(setup(createGame(),[],['1-4','1-8','1-12']));const selected=structuredClone(g.players[1].gigs[0]);
   g=step(g,{type:'steal',player:0,dieId:'1-4'});assert.deepEqual(g.players[0].gigs[0],selected);assert.deepEqual(g.players[1].gigs.map(d=>d.id),['1-8','1-12']);
 });
 test('a stolen die keeps its original owner, type and face even after stealing it back',()=>{
-  let g=setup(createGame(),[],['1-12']);g=step(g,{type:'set-value',player:1,dieId:'1-12',value:12});
+  let g=mainPhase(setup(createGame(),[],['1-12']));g=step(g,{type:'set-value',player:1,dieId:'1-12',value:12});
   g=step(g,{type:'steal',player:0,dieId:'1-12'});assert.deepEqual(g.players[0].gigs[0],{id:'1-12',owner:1,sides:12,value:12});
   g=step(g,{type:'steal',player:1,dieId:'1-12'});assert.equal(g.players[1].gigs[0].owner,1);
 });
 test('multiple selected Gigs transfer atomically with no lost or duplicated dice',()=>{
-  let g=setup(createGame(),[],['1-4','1-8','1-12']);g=step(g,{type:'steal',player:0,dieIds:['1-12','1-4']});
+  let g=mainPhase(setup(createGame(),[],['1-4','1-8','1-12']));g=step(g,{type:'steal',player:0,dieIds:['1-12','1-4']});
   assert.deepEqual(g.players[0].gigs.map(d=>d.id),['1-12','1-4']);assert.deepEqual(g.players[1].gigs.map(d=>d.id),['1-8']);
 });
 test('missing, duplicate and invalid steal selections leave the match unchanged',()=>{
-  const g=setup(createGame(),[],['1-4']);for(const dieIds of [[],['1-4','1-4'],['1-4','1-20'],['0-4']])assert.equal(transition(g,{type:'steal',player:0,dieIds}),g);
+  const g=mainPhase(setup(createGame(),[],['1-4']));for(const dieIds of [[],['1-4','1-4'],['1-4','1-20'],['0-4']])assert.equal(transition(g,{type:'steal',player:0,dieIds}),g);
   assert.equal(transition(g,{type:'steal',player:0}),g);
 });
 test('removing and restoring a selected Gig keeps the physical die and face',()=>{
   let g=setup(createGame(),['0-4','0-12']);g=step(g,{type:'remove',player:0,dieId:'0-4'});
   assert.equal(g.removed[0].id,'0-4');assert.deepEqual(g.players[0].gigs.map(d=>d.id),['0-12']);
   g=step(g,{type:'restore',player:1,dieId:'0-4'});assert.equal(g.players[1].gigs[0].owner,0);assert.equal(g.players[1].gigs[0].value,3);
+});
+test('stealing is locked for both players until the active player rolls their turn Gig',()=>{
+  let g=setup(createGame(),['0-4'],['1-6']);
+  assert.equal(needsTurnGig(g),true);assert.equal(canSteal(g),false);
+  assert.equal(transition(g,{type:'steal',player:0,dieId:'1-6'}),g);
+  assert.equal(transition(g,{type:'steal',player:1,dieId:'0-4'}),g);
+  g=roll(g,8,2);assert.equal(needsTurnGig(g),false);assert.equal(canSteal(g),true);
+  g=step(g,{type:'steal',player:0,dieId:'1-6'});assert.ok(g.players[0].gigs.some(d=>d.id==='1-6'));
+});
+test('editing and restoring dice do not satisfy the required setup roll',()=>{
+  let g=setup(createGame(),['0-4'],['1-6']);g=step(g,{type:'set-value',player:1,dieId:'1-6',value:5});
+  g=step(g,{type:'remove',player:0,dieId:'0-4'});g=step(g,{type:'restore',player:0,dieId:'0-4'});
+  assert.equal(needsTurnGig(g),true);assert.equal(canSteal(g),false);
+});
+test('a new turn re-locks stealing, but an empty Fixer needs no roll',()=>{
+  let g=mainPhase(setup(createGame(),['0-4'],['1-6']));assert.equal(canSteal(g),true);
+  g=step(g,{type:'end-turn'});assert.equal(g.active,1);assert.equal(canSteal(g),false);
+  assert.equal(transition(g,{type:'steal',player:1,dieId:'0-4'}),g);
+  g=roll(g,8,2);assert.equal(canSteal(g),true);
+  const empty=seventh();assert.equal(needsTurnGig(empty),false);assert.equal(canSteal(empty),true);
+  assert.notEqual(transition(empty,{type:'steal',player:0,dieId:'1-4'}),empty);
 });
 test('a returned die goes to Fixer without a face and re-locks D20',()=>{
   let g=seventh();g=step(g,{type:'return-fixer',player:0,dieId:'0-20'});g=step(g,{type:'return-fixer',player:0,dieId:'0-4'});
@@ -65,6 +91,23 @@ test('editing and rerolling a face never changes the Gig count or die identity',
   let g=setup(createGame(),['0-12']);g=step(g,{type:'set-value',player:0,dieId:'0-12',value:12});
   assert.equal(g.players[0].gigs.length,1);assert.equal(g.players[0].gigs[0].value,12);
   assert.equal(transition(g,{type:'set-value',player:0,dieId:'0-12',value:13}),g);assert.equal(streetCred(g.players[0]),12);
+});
+test('the active player can adjust a rival Gig without changing control or turn state',()=>{
+  const original=setup(createGame(),['0-4'],['1-6']);
+  const g=step(original,{type:'set-value',player:1,dieId:'1-6',value:5});
+  assert.equal(g.active,0);assert.equal(g.turn,original.turn);assert.equal(g.rolled,original.rolled);
+  assert.equal(g.players[0].gigs[0].value,3);assert.equal(streetCred(g.players[1]),5);
+  assert.deepEqual(g.players[1].gigs[0],{id:'1-6',owner:1,sides:6,value:5});
+  assert.equal(original.players[1].gigs[0].value,3);
+});
+test('every Gig type accepts its endpoints and rejects faces outside its range',()=>{
+  let g=setup(createGame(),DIE_TYPES.map(sides=>`0-${sides}`));
+  for(const sides of DIE_TYPES){
+    g=step(g,{type:'set-value',player:0,dieId:`0-${sides}`,value:1});
+    g=step(g,{type:'set-value',player:0,dieId:`0-${sides}`,value:sides});
+    for(const value of [0,sides+1,1.5])assert.equal(transition(g,{type:'set-value',player:0,dieId:`0-${sides}`,value}),g);
+  }
+  assert.equal(streetCred(g.players[0]),60);
 });
 test('seven Gigs wins only at the start of that player’s next regulation turn',()=>{
   let g=setup(createGame(),seven);assert.equal(g.result,null);g=step(g,{type:'end-turn'});assert.equal(g.result,null);

@@ -5,6 +5,8 @@ export const DIE_TYPES = [4, 6, 8, 10, 12, 20];
 export const RULES_URL = 'https://cyberpunktcg.com/comprehensive-rules';
 export const allDice = () => [0, 1].flatMap(owner => DIE_TYPES.map(sides => ({ id: `${owner}-${sides}`, owner, sides, value: null })));
 export const legalFixerDice = p => p.fixer.filter(d => d.sides && (d.sides !== 20 || p.fixer.length === 1));
+export const needsTurnGig = g => !g.result && !g.needsDiceReview && !g.rolled && g.players[g.active].fixer.length > 0;
+export const canSteal = g => !g.result && !g.needsDiceReview && !needsTurnGig(g);
 export const streetCred = p => p.gigs.length ? p.gigs.reduce((sum, d) => sum + d.value, 0) : null;
 const validFace = (sides, value) => Number.isInteger(value) && value >= 1 && value <= sides;
 export function createGame(names = ['Player One', 'Player Two'], first = 0) {
@@ -48,6 +50,7 @@ export function transition(previous,action) {
       log(g,`${current.name} rolled in D${die.sides}: ${value}. ${current.gigs.length} Gigs in play.`,'roll');break;
     }
     case 'steal': {
+      if(!canSteal(g))return previous;
       const ids=action.dieIds??(action.dieId?[action.dieId]:[]);
       if(!Array.isArray(ids)||!ids.length||new Set(ids).size!==ids.length||ids.some(id=>!rival.gigs.some(d=>d.id===id)))return previous;
       const selected=ids.map(id=>rival.gigs.find(d=>d.id===id));rival.gigs=rival.gigs.filter(d=>!ids.includes(d.id));p.gigs.push(...selected);

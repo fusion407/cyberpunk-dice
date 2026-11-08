@@ -1,4 +1,4 @@
-/* Shared badge: decorative on desktop, a touch target on phones. */
+/* Match app.js: tablets and touch screens can use the table-view switch. */
 .scoreboard::after { content: none; }
 .table-only, .view-toggle { display: none; }
 .vs-badge {
@@ -18,7 +18,7 @@
   letter-spacing: 1px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 1200px), (any-pointer: coarse) {
   .desktop-vs { display: none; }
   .view-toggle {
     position: absolute;
@@ -189,7 +189,7 @@
   .table-view .toast { bottom: calc(50% + 30px); font-size: 10px; padding: 8px 12px; }
 }
 
-@media (max-width: 600px) and (max-height: 740px) {
+@media (max-width: 1200px) and (max-height: 740px), (any-pointer: coarse) and (max-height: 740px) {
   .table-view .scoreboard { gap: 44px; padding: 6px 8px; }
   .table-view .player-card { gap: 4px; padding: 8px 10px; }
   .table-view .table-turn-track { min-height: 20px; }
@@ -213,7 +213,7 @@
   .table-view .table-end-turn { min-height: 34px; }
 }
 
-@media (max-width: 600px) and (max-height: 620px) {
+@media (max-width: 1200px) and (max-height: 620px), (any-pointer: coarse) and (max-height: 620px) {
   .table-view .player-card { gap: 3px; padding-top: 7px; padding-bottom: 7px; }
   .table-view .player-main { flex-basis: 54px; min-height: 54px; }
   .table-view .count-number { font-size: 56px; }
