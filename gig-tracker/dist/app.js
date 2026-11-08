@@ -1,4 +1,5 @@
 import { createGame, transition, migrateGame, DIE_TYPES, allDice, legalFixerDice, needsTurnGig, canSteal, streetCred, RULES_URL } from './game.js';
+import { FEEDBACK_STORAGE, SOUND_FILES, createSoundPlayer, feedbackForAction, showPlayerEffect, clearEffects } from './feedback.js';
 const $ = id => document.getElementById(id);
 const esc = text => String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const STORAGE = 'gig-tracker:match:v1';
@@ -9,6 +10,9 @@ let diceQuantity = 1, quickSides = 6, lastQuickSides = 6, quickResults = [], rol
 let toastTimer, modalKind = null, modalContext = {}, selectedDieId = null;
 let preferTableView = false, tableView = false, standardScrollY = 0, dialogViewer = 0;
 const tableRolls = [null, null];
+let feedbackStorage;
+try { feedbackStorage = localStorage; } catch { /* Sound still works without persistent storage. */ }
+const sound = createSoundPlayer({ storage: feedbackStorage });
 try {
   const saved = JSON.parse(localStorage.getItem(STORAGE));
   const restored = migrateGame(saved?.game);
@@ -34,18 +38,38 @@ function randomDie(sides = 6) {
 }
 function save() { try { localStorage.setItem(STORAGE, JSON.stringify({game,history})); storageAvailable = true; } catch { storageAvailable = false; } }
 function notify(text) { $('toast').textContent = text; $('toast').classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('show'), 3200); }
-function commit(next) {
+function commit(next, action = null) {
   if (next === game) return;
+  const feedback = feedbackForAction(game, next, action);
   const hadWinner = !!game.result;
   history.push(structuredClone(game)); history = history.slice(-100); game = next; save(); render();
+  if (feedback) { sound.play(feedback.effect); if (sound.settings.effects) showPlayerEffect(feedback); }
   if (game.result && !hadWinner) {
     const target = tableView ? document.querySelector(`.player-card[data-player="${game.result.winners[0]}"] .table-result`) : $('match-announcement');
     target.setAttribute('tabindex','-1'); target.focus({preventScroll:tableView}); navigator.vibrate?.([60,50,100]);
   }
 }
-function dispatch(action) { commit(transition(game, action)); }
+function dispatch(action) { commit(transition(game, action), action); }
 const diceIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 9 6v8l-9 6-9-6V8l9-6Z M3 8l9 5 9-5M12 13v9"/></svg>';
 const settingsIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"/></svg>';
+const soundIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4Z"/><path class="sound-waves" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-off" d="m15 9 6 6m0-6-6 6"/></svg>';
+function soundToggle() { return `<button class="icon-button sound-toggle" data-action="toggle-sound" aria-label="Mute sound effects" aria-pressed="true">${soundIcon}</button>`; }
+function renderSoundControls() {
+  const settings = sound.settings, enabled = !settings.muted && settings.volume > 0;
+  document.querySelectorAll('[data-action="toggle-sound"]').forEach(button => {
+    button.innerHTML = soundIcon; button.setAttribute('aria-pressed', String(enabled));
+    button.setAttribute('aria-label', enabled ? 'Mute sound effects' : 'Enable sound effects');
+    button.title = enabled ? 'Mute sound effects' : 'Enable sound effects';
+  });
+  if ($('sound-enabled')) $('sound-enabled').checked = !settings.muted;
+  if ($('effects-enabled')) $('effects-enabled').checked = settings.effects;
+  if ($('sound-volume')) $('sound-volume').value = String(Math.round(settings.volume * 100));
+  if ($('sound-volume-label')) $('sound-volume-label').textContent = `${Math.round(settings.volume * 100)}%`;
+  document.querySelectorAll('[data-action="preview-sound"]').forEach(button => { button.disabled = !enabled; });
+}
+function soundSettings() {
+  return `<fieldset class="feedback-settings"><legend>Sound & effects</legend><label class="feedback-option" for="sound-enabled">Sound effects<input id="sound-enabled" type="checkbox"></label><label class="feedback-option" for="sound-volume">Volume <output id="sound-volume-label" for="sound-volume"></output></label><div class="feedback-option"><input id="sound-volume" type="range" min="0" max="100" step="5" aria-label="Sound effects volume"></div><label class="feedback-option" for="effects-enabled">Visual effects<input id="effects-enabled" type="checkbox"></label><p class="form-note">Steals hit the rival’s side. New Gigs trigger a quickhack or braindance; saved face changes play the eddies cue. Preferences save immediately.</p><div class="sound-previews" role="group" aria-label="Preview sound effects">${Object.keys(SOUND_FILES).map(id => `<button type="button" class="outline-button" data-action="preview-sound" data-sound="${id}">▶ ${{shock:'Short circuit',slash:'Katana slash',quickhack:'Quickhack',braindance:'Braindance',eddies:'Eddies'}[id]}</button>`).join('')}</div></fieldset>`;
+}
 function die(value, extra = '', sides = 6) { return `<span class="poly-die ${extra}" role="img" aria-label="D${sides} showing ${value}"><small>D${sides}</small><strong>${value}</strong></span>`; }
 function gigToken(d, player) { return `<button class="gig-token owner-${d.owner}" data-action="edit-gig" data-player="${player}" data-die="${esc(d.id)}" aria-label="Edit ${esc(game.players[player].name)} Gig: D${d.sides ?? '?'} showing ${d.value}, owned by ${esc(game.players[d.owner]?.name ?? 'unrecorded')}" ${game.result || game.needsDiceReview ? 'disabled' : ''}><small>D${d.sides ?? '?'}</small><strong>${d.value}</strong><i>${d.owner===null?'?':d.owner+1}</i></button>`; }
 function playerCard(p, index) {
@@ -75,6 +99,7 @@ function renderReview() {
   $('dice-review').classList.toggle('table-review',tableView);
 }
 function render() {
+  clearEffects();
   $('scoreboard').innerHTML = game.players.map(playerCard).join('') + '<span class="vs-badge desktop-vs" aria-hidden="true">VS</span><button id="view-toggle" class="view-toggle" data-action="toggle-table" aria-label="Switch to face-to-face table view" aria-pressed="false" aria-controls="scoreboard"><span>VS</span></button>';
   $('match-state').textContent = game.result ? 'MATCH COMPLETE' : game.overtime ? 'OVERTIME / SUDDEN DEATH' : 'MATCH IN PROGRESS';
   const round = Math.ceil(game.turn / 2);
@@ -104,6 +129,9 @@ function render() {
   renderRoller();
   applyView();
   renderReview();
+  document.querySelectorAll('.table-actions').forEach(actions => actions.insertAdjacentHTML('afterbegin', soundToggle()));
+  if (!document.querySelector('.header-right .sound-toggle')) document.querySelector('.header-right').insertAdjacentHTML('afterbegin', soundToggle());
+  renderSoundControls();
 }
 function renderRoller() {
   $('dice-quantity').textContent = `${diceQuantity} ${diceQuantity===1?'die':'dice'}`;
@@ -158,6 +186,7 @@ function showModal(kind, viewer=game.active, context={}) {
   } else if(kind==='rules') {
     modal.innerHTML=modalHeading('Know the rules.')+`<div class="rules-card"><h3>01 / Six different dice</h3><p>Each player owns one D4, D6, D8, D10, D12 and D20. Choose any die remaining in Fixer each turn, except <em>D20 must be last</em>. Roll digitally or record a physical face.</p></div><div class="rules-card"><h3>02 / Steal the exact Gig</h3><p>Choose any rival Gig regardless of its value. Its type, face and original owner are preserved. For multiple Gigs, select all before confirming. Tap a friendly Gig to adjust its face for card effects.</p></div><div class="rules-card"><h3>03 / Regulation</h3><p>Start your turn with <em>7+ Gigs</em> to win, before rolling a new die. Each physical die is one Gig; Street Cred is the sum of their faces.</p></div><div class="rules-card overtime-rule"><h3>04 / Overtime</h3><p>Overtime begins at the end of the second consecutive turn whose player began with an empty Fixer, normally after both seventh turns. Seven Gigs then wins immediately, including Gigs already held when overtime starts.</p></div><p class="rules-extras">+ rolls a new Gig or restores a removed die. − lets you choose a die to remove. Fixer returns and physical setup corrections are available for card effects. Resolve card-specific alternate victories at the table.</p><a class="rules-link" href="${RULES_URL}" target="_blank" rel="noopener noreferrer">Official rules · §§6, 7.2, 8.6.5, 11.5 ↗</a>`;
   }
+  if (kind === 'settings') { modal.insertAdjacentHTML('beforeend', soundSettings()); renderSoundControls(); }
   if(!modal.open)modal.showModal();
 }
 function updateFacePreview() {
@@ -177,12 +206,13 @@ function renderGigPicker() {
   $('modal').innerHTML=modalHeading(modalContext.endAfter?'Before you pass…':'Choose your Gig.')+`<p class="modal-intro">Pick any remaining Fixer die. D20 unlocks only when it is the last die left.</p><div class="die-choice-grid">${p.fixer.map(d=>{const allowed=legal.some(item=>item.id===d.id);return `<button class="die-choice ${d.id===selectedDieId?'selected':''}" data-action="select-fixer" data-die="${esc(d.id)}" aria-pressed="${d.id===selectedDieId}" ${!allowed?'disabled':''}><strong>D${d.sides}</strong><small>${allowed?'AVAILABLE':'D20 LAST · LOCKED'}</small></button>`;}).join('')}</div>${selected?`<button class="primary-button full-button" data-action="roll-selected">Roll D${selected.sides} & ${modalContext.endAfter?'end turn':'add Gig'}</button><form id="physical-form"><div class="form-field"><label for="physical-face">ALREADY ROLLED D${selected.sides}? RECORD ITS FACE / 1–${selected.sides}</label><input id="physical-face" type="number" min="1" max="${selected.sides}" value="1" required></div><button class="outline-button full-button">Record physical D${selected.sides}${modalContext.endAfter?' & end turn':''}</button></form>`:''}<div class="modal-buttons"><button class="outline-button" data-action="close-modal">Go back</button>${modalContext.endAfter?'<button class="outline-button" data-action="skip-and-end">End without a Gig</button>':''}</div>`;
 }
 function finishRoll(value) {
-  let next=transition(game,{type:'roll-in',dieId:selectedDieId,value});
+  const action={type:'roll-in',dieId:selectedDieId,value};
+  let next=transition(game,action);
   if(next===game){notify('That die is unavailable or its face is invalid.');return;}
   if(modalContext.endAfter)next=transition(next,{type:'end-turn'});
-  $('modal').close();commit(next);
+  $('modal').close();commit(next,action);
 }
-function applyAndClose(action) { const next=transition(game,action);if(next===game){notify('Check the selected die and its face.');return;} $('modal').close();commit(next); }
+function applyAndClose(action) { const next=transition(game,action);if(next===game){notify('Check the selected die and its face.');return;} $('modal').close();commit(next,action); }
 function addGig(player) {
   if(player===game.active&&!game.rolled&&legalFixerDice(game.players[player]).length)showModal('roll-in',player);
   else if(game.removed.length)showModal('restore',player);
@@ -191,6 +221,8 @@ function addGig(player) {
 document.addEventListener('click',event=>{
   const button=event.target.closest('button[data-action]');if(!button||button.disabled)return;
   const action=button.dataset.action,viewer=Number(button.closest('.player-card')?.dataset.player??game.active);
+  if(action==='toggle-sound'){const settings=sound.settings;sound.configure({muted:!settings.muted&&settings.volume>0,volume:settings.volume||0.45});renderSoundControls();return;}
+  if(action==='preview-sound'){sound.play(button.dataset.sound);return;}
   if(action==='dismiss-saved-dice'){
     if(!game.needsDiceReview)return;
     const next=createGame(game.players.map(p=>p.name),game.first);
@@ -234,10 +266,15 @@ document.addEventListener('click',event=>{
   }
 });
 document.addEventListener('change',event=>{
+  if(event.target.id==='sound-enabled'){sound.configure({muted:!event.target.checked});renderSoundControls();}
+  if(event.target.id==='effects-enabled'){sound.configure({effects:event.target.checked});if(!sound.settings.effects)clearEffects();renderSoundControls();}
   if(event.target.id==='quick-type'){quickSides=Number(event.target.value);renderRoller();}
   if(event.target.matches('#steal-form input[name="gig"]'))$('confirm-steal').disabled=!document.querySelector('#steal-form input:checked');
 });
-document.addEventListener('input',event=>{if(event.target.id==='gig-face')updateFacePreview();});
+document.addEventListener('input',event=>{
+  if(event.target.id==='gig-face')updateFacePreview();
+  if(event.target.id==='sound-volume'){sound.configure({volume:Number(event.target.value)/100});renderSoundControls();}
+});
 document.addEventListener('submit',event=>{
   const form=event.target;event.preventDefault();
   if(form.id==='physical-form'){finishRoll(Number($('physical-face').value));return;}
@@ -255,10 +292,13 @@ document.addEventListener('submit',event=>{
 });
 $('modal').addEventListener('click',event=>{if(event.target===$('modal')){const r=$('modal').getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)$('modal').close();}});
 window.addEventListener('storage',event=>{
+  if(event.key===FEEDBACK_STORAGE){sound.sync(event.newValue);if(!sound.settings.effects)clearEffects();renderSoundControls();return;}
   if(event.key!==STORAGE||!event.newValue)return;
   try{const saved=JSON.parse(event.newValue),next=migrateGame(saved.game);if(next){game=next;history=Array.isArray(saved.history)?saved.history.map(migrateGame).filter(Boolean).slice(-100):[];$('modal').close();render();notify('Match updated from another tab.');}}catch{}
 });
 // Opening or resuming a match never opens a dialog. The active card prompts
 // for its setup roll; the picker opens only in response to a player action.
 save();render();
+sound.preload();
+document.addEventListener('visibilitychange',()=>{if(document.hidden){sound.stop();clearEffects();}});
 if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});

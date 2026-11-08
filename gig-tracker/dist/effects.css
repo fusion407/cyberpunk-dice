@@ -1,0 +1,32 @@
+/* Each overlay lives inside its player card, including the rotated table half. */
+.gig-effect { position: absolute; inset: 0; z-index: 6; pointer-events: none; border-radius: inherit; overflow: hidden; animation: effect-fade 1.05s ease-out both; }
+.gig-effect-label { position: absolute; top: 12px; right: 12px; max-width: calc(100% - 24px); padding: 6px 9px; border: 1px solid currentColor; border-radius: 2px; background: #0a100ff0; font: 600 9px var(--mono); letter-spacing: 1px; }
+.gig-effect-shock { color: #91f6ff; box-shadow: inset 0 0 0 3px #91f6ff, inset 0 0 24px #16d2f675; background: linear-gradient(110deg, transparent 40%, #91f6ff21 50%, transparent 60%); }
+.gig-effect-shock::before, .gig-effect-shock::after { content: ''; position: absolute; inset: 6px; border: 2px solid currentColor; clip-path: polygon(0 0, 28% 0, 24% 5%, 56% 2%, 62% 0, 100% 0, 100% 38%, 96% 47%, 100% 55%, 100% 100%, 60% 100%, 65% 96%, 0 100%, 0 62%, 3% 57%); }
+.gig-effect-shock::after { inset: 12px; opacity: .45; transform: rotate(180deg); }
+.gig-effect-slash { color: #ff6879; box-shadow: inset 0 0 30px #a0002240; }
+.gig-effect-slash::before { content: ''; position: absolute; inset: 10% 5%; background: linear-gradient(135deg, transparent 39%, #620e24 39.5%, #ff5268 40%, #b81f3d 42%, transparent 43%, transparent 49%, #ff6978 50%, #a70c30 52%, transparent 53%, transparent 59%, #b81f3d 60%, #ff5268 61%, transparent 62%); clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%); animation: slash-reveal .3s ease-out both; }
+.gig-effect-quickhack, .gig-effect-braindance { color: var(--cyan); box-shadow: inset 0 0 0 2px currentColor, inset 0 0 35px #66d9d020; }
+.gig-effect-quickhack::before, .gig-effect-braindance::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent 0 8px, #66d9d024 8px 9px); animation: hack-scan .8s ease-out both; }
+.gig-effect-braindance { color: #c09bff; box-shadow: inset 0 0 0 2px currentColor, inset 0 0 35px #b691ff20; }
+.gig-effect-braindance::before { background: repeating-linear-gradient(0deg, transparent 0 8px, #b691ff24 8px 9px); }
+.gig-effect-eddies { color: var(--yellow); box-shadow: inset 0 0 0 2px currentColor, inset 0 0 25px #e5f34b15; }
+.sound-toggle[aria-pressed="false"] { color: var(--faint); }
+.sound-toggle[aria-pressed="false"] .sound-waves { display: none; }
+.sound-toggle[aria-pressed="true"] .sound-off { display: none; }
+.feedback-settings { border: 1px solid var(--border); border-radius: 4px; padding: 14px; margin: 20px 0 0; }
+.feedback-settings legend { padding: 0 6px; font: 600 18px var(--display); }
+.feedback-option { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 12px 0; font-size: 12px; color: var(--muted); }
+.feedback-option input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--cyan); }
+.feedback-option input[type="range"] { width: 100%; accent-color: var(--cyan); }
+.feedback-option output { min-width: 34px; text-align: right; font: 11px var(--mono); }
+.sound-previews { display: flex; flex-wrap: wrap; gap: 7px; }
+.sound-previews button { min-height: 36px; padding: 7px 10px; font-size: 10px; }
+@keyframes effect-fade { 0%, 55% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes slash-reveal { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
+@keyframes hack-scan { from { transform: translateY(-60%); } to { transform: translateY(15%); } }
+@media (prefers-reduced-motion: reduce) {
+  .gig-effect, .gig-effect::before, .gig-effect::after { animation: none !important; }
+  .gig-effect-shock, .gig-effect-slash, .gig-effect-quickhack, .gig-effect-braindance, .gig-effect-eddies { box-shadow: inset 0 0 0 2px currentColor; background: none; }
+  .gig-effect::before, .gig-effect::after { display: none; }
+}
