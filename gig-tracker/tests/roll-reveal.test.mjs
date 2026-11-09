@@ -18,3 +18,13 @@ test('dice reveals preserve every actual face and compute the correct multi-die 
 test('invalid faces and unsupported dice cannot appear in a reveal', () => {
   for (const [sides, values] of [[3,[1]], [6,[]], [6,[0]], [6,[7]], [4,[2.5]], [20,[NaN]], [6,Array(7).fill(1)]]) assert.throws(() => summarizeRoll(sides, values), RangeError);
 });
+
+test('Max Face celebration applies to any maximum die, once for the whole roll', () => {
+  for (const sides of DIE_TYPES) {
+    assert.equal(summarizeRoll(sides, [sides]).hasMaxFace, true);
+    assert.equal(summarizeRoll(sides, [1, sides, 2]).hasMaxFace, true);
+    assert.equal(summarizeRoll(sides, [sides, sides, sides]).hasMaxFace, true);
+    assert.equal(summarizeRoll(sides, [1, sides - 1]).hasMaxFace, false);
+    assert.equal(summarizeRoll(sides, [1, sides]).maximum, false);
+  }
+});

@@ -134,6 +134,25 @@
         "bytes": 60326,
         "sha256": "9864385242a8aeec083aac270803e66144d46673b60c6a7a5180dc7abb243ec5"
       }
+    },
+    {
+      "name": "max-face",
+      "id": "422363277",
+      "event": "ui_jingle_technical_ability_skillcheck",
+      "downloadedOn": "2026-11-09",
+      "databaseUrl": "https://sounddb.redmodding.org/sfx/422363277",
+      "downloadUrl": "https://static.zhincore.eu/cp/sfx/422363277.ogg",
+      "durationSeconds": 2.8260833333333335,
+      "original": {
+        "file": "max-face.ogg",
+        "bytes": 6278,
+        "sha256": "96169e0c7ee5d5f8fa88950f6f4f947ac787a34dcdf760b1802805f629478ee6"
+      },
+      "playback": {
+        "file": "max-face.wav",
+        "bytes": 135696,
+        "sha256": "d08c0948515ee59b0ffa5f4ef5cdd6ecabeb46710288742e3a69dfc85d4db09a"
+      }
     }
   ]
 }

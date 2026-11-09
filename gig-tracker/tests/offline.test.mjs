@@ -27,7 +27,7 @@ test('all pre-cached offline resources exist, including home-screen icons', asyn
   assert.ok(precached.includes('./install.css'));
   assert.ok(precached.includes('./roll-reveal.js'));
   assert.ok(precached.includes('./roll-reveal.css'));
-  for (const file of ['short-circuit', 'katana-slash', 'quickhack', 'braindance', 'eddies', 'vs-button', 'dice-reveal']) assert.ok(precached.includes(`./audio/${file}.wav`));
+  for (const file of ['short-circuit', 'katana-slash', 'quickhack', 'braindance', 'eddies', 'vs-button', 'dice-reveal', 'max-face']) assert.ok(precached.includes(`./audio/${file}.wav`));
   assert.ok(precached.includes('./icon-512.png'));
   for (const url of precached) await access(new URL(url === './' ? './index.html' : url, root));
   const manifest = JSON.parse(await readFile(new URL('manifest.webmanifest', root), 'utf8'));

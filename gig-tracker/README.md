@@ -47,15 +47,17 @@ Digital Gig rolls, Gig rerolls, Quick roll (one to six dice), and either player'
 
 Results are generated once and committed before presentation. Closing early, pressing Escape, backgrounding, or receiving a newer match from another tab cancels only the presentation. A dedicated Cyberpunk hacking cue accompanies digital rolls. Muting still applies; reduced motion or disabling visual effects shows the result immediately without tumbling or delay.
 
+Any roll containing a **MAX FACE** uses a brief Cyberpunk technical-skill success tune instead of the normal cue. It plays once per roll, including mixed multi-die rolls and recorded physical maximums. Mute and volume controls still apply; the celebration does not change the result or game rules.
+
 ## Sound and visual effects
 
 Successful steals randomly pair a short-circuit sound with an electric border or a katana impact with red slashes on the player losing the Gigs. Recording or restoring a Gig randomly uses a quickhack or braindance cue. Saving a manually changed face plays the eddies money jingle; digital rolls and rerolls use the dedicated dice-reveal cue. Multi-Gig steals play one cue. Cancelled edits, unchanged faces, rejected moves, undo and save synchronization stay quiet.
 
-Use the speaker button in the header or either face-to-face player half to mute. **Match settings → Sound & effects** includes saved volume, separate sound and visual toggles, and previews of all seven clips. Preferences save immediately, independently of the match. Effects respect reduced-motion preferences. Audio stops when the app goes into the background, and a new cue replaces any previous cue.
+Use the speaker button in the header or either face-to-face player half to mute. **Match settings → Sound & effects** includes saved volume, separate sound and visual toggles, and previews of all eight clips. Preferences save immediately, independently of the match. Effects respect reduced-motion preferences. Audio stops when the app goes into the background, and a new cue replaces any previous cue.
 
 The slightly larger, brighter **VS** button plays the selected Panam button-click sound and a brief yellow/cyan ring pulse every time it switches views. The existing sound and visual toggles apply; reduced motion uses a stationary highlight. View changes preserve the match and undo history.
 
-All seven clips work offline once the app has cached. No runtime connection to SoundDB is needed. [Sound credits and download links](dist/audio/README.md) list the exact SoundDB events and IDs; original Ogg files and level-matched WAV versions are included in `dist/audio/`.
+All eight clips work offline once the app has cached. No runtime connection to SoundDB is needed. [Sound credits and download links](dist/audio/README.md) list the exact SoundDB events and IDs; original Ogg files and level-matched WAV versions are included in `dist/audio/`.
 
 ## Victory rules
 

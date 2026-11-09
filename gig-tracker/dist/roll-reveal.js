@@ -12,7 +12,7 @@ const outlines = {
 
 export function summarizeRoll(sides, values) {
   if (!DIE_TYPES.includes(sides) || !Array.isArray(values) || values.length < 1 || values.length > 6 || values.some(v => !Number.isInteger(v) || v < 1 || v > sides)) throw new RangeError('Invalid dice reveal');
-  return { sides, values: [...values], total: values.reduce((sum, value) => sum + value, 0), maximum: values.every(value => value === sides) };
+  return { sides, values: [...values], total: values.reduce((sum, value) => sum + value, 0), maximum: values.every(value => value === sides), hasMaxFace: values.some(value => value === sides) };
 }
 
 export function createRollReveal({ dialog, getSettings, playSound, win = window }) {
@@ -48,7 +48,9 @@ export function createRollReveal({ dialog, getSettings, playSound, win = window 
     dialog.querySelector('.reveal-close').addEventListener('click', close);
     dialog.querySelector('.reveal-continue').addEventListener('click', close);
     dialog.showModal();
-    if (sound) playSound(sound);
+    // One cue per reveal: a restrained success stinger for any highlighted max face.
+    if (summary.hasMaxFace) playSound('maxFace');
+    else if (sound) playSound(sound);
     if (motion) {
       let frame = 0;
       ticker = setInterval(() => {
