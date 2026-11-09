@@ -41,15 +41,21 @@ Older saves and undo history retain their counts, faces and turns. A fresh match
 
 Use the saved-dice banner’s **×** to discard the old match and start fresh with the same player names and first player. The banner stays dismissed after reload. **Undo** restores the old match and its setup prompt if dismissed accidentally.
 
+## Dice reveals
+
+Digital Gig rolls, Gig rerolls, Quick roll (one to six dice), and either player's free roller in battle mode open a neon result display. A short tumble and scanning faces settle on the actual values, with a large total and a highlight for maximum faces. **Continue** returns to the board; the result stays in the Gig area or free roller. Recorded physical dice show an immediate, static confirmation. In battle mode the reveal faces the player who rolled, including when rolling and passing the turn together.
+
+Results are generated once and committed before presentation. Closing early, pressing Escape, backgrounding, or receiving a newer match from another tab cancels only the presentation. A dedicated Cyberpunk hacking cue accompanies digital rolls. Muting still applies; reduced motion or disabling visual effects shows the result immediately without tumbling or delay.
+
 ## Sound and visual effects
 
-Successful steals randomly pair a short-circuit sound with an electric border or a katana impact with red slashes on the player losing the Gigs. Gaining or restoring a Gig randomly uses a quickhack or braindance cue. Saving a changed face (including a reroll to a different face) plays the eddies money jingle. Multi-Gig steals play one cue. Cancelled edits, unchanged faces, rejected moves, undo, free rolls and save synchronization stay quiet.
+Successful steals randomly pair a short-circuit sound with an electric border or a katana impact with red slashes on the player losing the Gigs. Recording or restoring a Gig randomly uses a quickhack or braindance cue. Saving a manually changed face plays the eddies money jingle; digital rolls and rerolls use the dedicated dice-reveal cue. Multi-Gig steals play one cue. Cancelled edits, unchanged faces, rejected moves, undo and save synchronization stay quiet.
 
-Use the speaker button in the header or either face-to-face player half to mute. **Match settings → Sound & effects** includes saved volume, separate sound and visual toggles, and previews of all six clips. Preferences save immediately, independently of the match. Effects respect reduced-motion preferences. Audio stops when the app goes into the background, and a new cue replaces any previous cue.
+Use the speaker button in the header or either face-to-face player half to mute. **Match settings → Sound & effects** includes saved volume, separate sound and visual toggles, and previews of all seven clips. Preferences save immediately, independently of the match. Effects respect reduced-motion preferences. Audio stops when the app goes into the background, and a new cue replaces any previous cue.
 
 The slightly larger, brighter **VS** button plays the selected Panam button-click sound and a brief yellow/cyan ring pulse every time it switches views. The existing sound and visual toggles apply; reduced motion uses a stationary highlight. View changes preserve the match and undo history.
 
-All six clips work offline once the app has cached. No runtime connection to SoundDB is needed. [Sound credits and download links](dist/audio/README.md) list the exact SoundDB events and IDs; original Ogg files and level-matched WAV versions are included in `dist/audio/`.
+All seven clips work offline once the app has cached. No runtime connection to SoundDB is needed. [Sound credits and download links](dist/audio/README.md) list the exact SoundDB events and IDs; original Ogg files and level-matched WAV versions are included in `dist/audio/`.
 
 ## Victory rules
 

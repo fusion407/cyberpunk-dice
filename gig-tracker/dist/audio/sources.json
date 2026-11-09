@@ -115,6 +115,25 @@
         "bytes": 6476,
         "sha256": "1079327f63408e0f1d0e34887725ca6c19368004e2542d3f7d7a0c4e47b34539"
       }
+    },
+    {
+      "name": "dice-reveal",
+      "id": "522533917",
+      "event": "ui_hacking_access_granted",
+      "downloadedOn": "2026-11-09",
+      "databaseUrl": "https://sounddb.redmodding.org/sfx/522533917",
+      "downloadUrl": "https://static.zhincore.eu/cp/sfx/522533917.ogg",
+      "durationSeconds": 1.255875,
+      "original": {
+        "file": "dice-reveal.ogg",
+        "bytes": 2858,
+        "sha256": "0adfc5466b4eb1af0b110d6069d1409916ecd936548ae649f0b2e1d5ef7f4d5c"
+      },
+      "playback": {
+        "file": "dice-reveal.wav",
+        "bytes": 60326,
+        "sha256": "9864385242a8aeec083aac270803e66144d46673b60c6a7a5180dc7abb243ec5"
+      }
     }
   ]
 }

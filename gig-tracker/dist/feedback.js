@@ -1,6 +1,6 @@
 export const FEEDBACK_STORAGE = 'gig-tracker:feedback:v1';
 export const SOUND_FILES = Object.freeze({
-  shock: 'short-circuit', slash: 'katana-slash', quickhack: 'quickhack', braindance: 'braindance', eddies: 'eddies', vs: 'vs-button'
+  shock: 'short-circuit', slash: 'katana-slash', quickhack: 'quickhack', braindance: 'braindance', eddies: 'eddies', vs: 'vs-button', roll: 'dice-reveal'
 });
 const defaults = { muted: false, volume: 0.45, effects: true };
 
